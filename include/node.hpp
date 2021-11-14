@@ -4,12 +4,9 @@
 
 using namespace std;
 
-#define SUB_PORT 9000
-#define PUB_PORT 9001
-
 class Node {
 public:
-  Node(const zmqpp::context &context);
+  Node(zmqpp::context &context);
   ~Node();
 
   int get(std::string topic_name, std::string &msg);

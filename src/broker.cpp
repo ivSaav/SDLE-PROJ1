@@ -2,28 +2,75 @@
 #include <iostream>
 #include <zmqpp/zmqpp.hpp>
 
+#include "../include/broker.hpp"
+#include "../include/common.hpp"
+
 using namespace std;
 
-int main() {
-  std::cout << "Running broker" << std::endl;
+void answer_ack(zmqpp::socket &sock) {
+  zmqpp::message ok_msg;
+  ok_msg << zmqpp::signal::ok;
+  sock.send(ok_msg);
+}
 
-  zmqpp::context context;
-  // create and bind a server socket
-  zmqpp::socket pubs(context, zmqpp::socket_type::rep);
-  pubs.bind("tcp://*:9001");
+Broker::Broker(zmqpp::context &context)
+    : s_publish(context, zmqpp::socket_type::rep),
+      s_subscribe(context, zmqpp::socket_type::rep) {
+  s_publish.bind("tcp://*:" + to_string(PUB_PORT));
+  s_subscribe.bind("tcp://*:" + to_string(SUB_PORT));
+}
+
+void Broker::run() {
+  zmqpp::poller poller;
+  poller.add(this->s_publish);
+  poller.add(this->s_subscribe);
 
   while (1) {
-    zmqpp::message put_req;
-    pubs.receive(put_req);
+    poller.poll();
+    if (poller.events(this->s_publish)) {
+      zmqpp::message request;
+      this->s_publish.receive(request);
 
-    string topic, content;
-    put_req >> topic;
-    cout << topic << endl;
+      string topic, content = "NONE";
+      request >> topic;
+      cout << "PUB topic: " << topic << " content: " << content << endl;
 
-    zmqpp::message ok_msg;
-    ok_msg << zmqpp::signal::ok;
-    pubs.send(ok_msg);
+      answer_ack(this->s_publish);
+    } else if (poller.events(this->s_subscribe)) {
+      zmqpp::message request;
+      this->s_subscribe.receive(request);
+
+      string topic;
+      request >> topic;
+      cout << "SUB topic: " << endl;
+
+      answer_ack(this->s_subscribe);
+    }
   }
+}
+
+int main() {
+  cout << "Running broker" << std::endl;
+  zmqpp::context context;
+  Broker broker(context);
+  broker.run();
+
+  //// create and bind a server socket
+  // zmqpp::socket pubs(context, zmqpp::socket_type::rep);
+  // pubs.bind("tcp://*:9001");
+
+  // while (1) {
+  // zmqpp::message put_req;
+  // pubs.receive(put_req);
+
+  // string topic, content;
+  // put_req >> topic;
+  // cout << topic << endl;
+
+  // zmqpp::message ok_msg;
+  // ok_msg << zmqpp::signal::ok;
+  // pubs.send(ok_msg);
+  //}
 
   // while (1) {
   // zmqpp::message request;
