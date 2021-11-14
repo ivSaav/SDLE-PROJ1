@@ -19,13 +19,6 @@ int receive_ack(zmqpp::socket &socket) {
 }
 
 // zmqpp::socket server(context, zmqpp::socket_type::rep);
-Node::Node(zmqpp::context &context)
-    : s_publish(context, zmqpp::socket_type::req),
-      s_subscribe(context, zmqpp::socket_type::req) {
-
-  this->s_subscribe.connect("tcp://127.0.0.1:" + to_string(SUB_PORT));
-  this->s_publish.connect("tcp://127.0.0.1:" + to_string(PUB_PORT));
-}
 
 Node::~Node() {
   this->s_subscribe.close();
@@ -43,14 +36,14 @@ int Node::send(zmqpp::socket &socket, zmqpp::message &msg) {
 
 int Node::get(string topic_name, string &content) {
   cout << topic_name << endl;
-  Message put_msg = PutMessage(topic_name);
+  Message put_msg = PutMessage(topic_name, "CONT");
   zmqpp::message msg = put_msg.to_zmq_msg();
   this->send(this->s_subscribe, msg);
   return 0;
 }
 
-int Node::put(string topic_name, string content) {
-  Message put_msg = PutMessage(topic_name);
+int Node::put(std::string topic_name, std::string content) {
+  Message put_msg = PutMessage(topic_name, "body goes here");
   zmqpp::message msg = put_msg.to_zmq_msg();
   this->send(this->s_publish, msg);
   return 0;

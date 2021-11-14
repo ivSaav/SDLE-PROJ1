@@ -2,11 +2,19 @@
 #include <iostream>
 #include <zmqpp/zmqpp.hpp>
 
+#include "../include/common.hpp"
+
 using namespace std;
 
 class Node {
 public:
-  Node(zmqpp::context &context);
+  Node(zmqpp::context context)
+      : s_publish(context, zmqpp::socket_type::req),
+        s_subscribe(context, zmqpp::socket_type::req) {
+
+    this->s_subscribe.connect("tcp://127.0.0.1:" + to_string(SUB_PORT));
+    this->s_publish.connect("tcp://127.0.0.1:" + to_string(PUB_PORT));
+  }
   ~Node();
 
   int get(std::string topic_name, std::string &msg);
