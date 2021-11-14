@@ -43,7 +43,7 @@ int Node::get(std::string topic_name, std::string &content) {
 }
 
 int Node::put(std::string topic_name, std::string content) {
-  Message put_msg = PutMessage(topic_name);
+  Message put_msg = PutMessage(topic_name, "body goes here");
   zmqpp::message msg = put_msg.to_zmq_msg();
   this->send(this->s_publish, msg);
   return 0;
