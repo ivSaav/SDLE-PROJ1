@@ -5,6 +5,8 @@ BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
 APP_DIR  := $(BUILD)/apps
 INCLUDE  := -Iinclude/
+TARG_DIR := build/objects/src
+TARGETS	 := $(TARG_DIR)/broker.o $(TARG_DIR)/main.o $(TARG_DIR)/test_app.o
 SRC      :=                      \
    $(wildcard src/*.cpp)         \
    $(wildcard src/message/*.cpp)         \
@@ -13,7 +15,7 @@ OBJECTS  := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES \
          := $(OBJECTS:.o=.d)
 
-all: build $(APP_DIR)/main $(APP_DIR)/broker
+all: build $(APP_DIR)/main $(APP_DIR)/broker $(APP_DIR)/test_app
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)
@@ -21,12 +23,15 @@ $(OBJ_DIR)/%.o: %.cpp
 
 $(APP_DIR)/broker: $(OBJECTS)
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/broker $(filter-out %/main.o, $^) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/broker $(filter-out $(filter-out %/broker.o, $(TARGETS)), $^) $(LDFLAGS)
 
 $(APP_DIR)/main: $(OBJECTS)
 	@mkdir -p $(@D)
-	echo $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/main $(filter-out %/broker.o, $^) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/main $(filter-out $(filter-out %/main.o, $(TARGETS)), $^) $(LDFLAGS)
+
+$(APP_DIR)/test_app: $(OBJECTS)
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/test_app $(filter-out $(filter-out %/test_app.o, $(TARGETS)), $^) $(LDFLAGS)
 
 -include $(DEPENDENCIES)
 
