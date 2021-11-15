@@ -5,6 +5,8 @@
 
 #include "../include/common.hpp"
 
+#define RESEND_TIMEOUT 500000 // Interval between GET msg's in micros
+
 using namespace std;
 
 class Node {

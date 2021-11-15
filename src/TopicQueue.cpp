@@ -96,7 +96,7 @@ bool TopicQueue::get(string peer_id, string topic_name, string &content) {
   if (!is_subscribed(peer_id, topic_name))
     return false;
 
-  const deque<string> queue = this->getQueue(topic_name);
+  const deque<string> &queue = this->getQueue(topic_name);
   deque<string>::iterator &iter =
       this->peer_positions.at(topic_name).at(peer_id);
   if (iter == queue.end()) // We have no more messages
