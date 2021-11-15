@@ -4,6 +4,7 @@
 
 #include "../include/broker.hpp"
 #include "../include/common.hpp"
+#include "../include/message/put_msg.hpp"
 
 using namespace std;
 
@@ -31,18 +32,37 @@ void Broker::run() {
       zmqpp::message request;
       this->s_publish.receive(request);
 
-      string topic, content = "NONE";
-      request >> topic;
-      cout << "PUB topic: " << topic << " content: " << content << endl;
+      // TODO Check if message is PUT
+      int type;
+      request >> type;
+      if (type == PUT) {
+        PutMessage msg(request);
+        cout << msg << endl;
+      } else {
+        cout << "Invalid message" << endl;
+        // TODO Handle this
+      }
 
       answer_ack(this->s_publish);
     } else if (poller.events(this->s_subscribe)) {
       zmqpp::message request;
       this->s_subscribe.receive(request);
+      // TODO Check if message is SUB, UNSUB or GET
 
-      string topic;
-      request >> topic;
-      cout << "SUB topic: " << endl;
+      int type;
+      request >> type;
+      if (type == SUB) {
+        SubMessage msg(request);
+        cout << msg << endl;
+      } else if (type == UNSUB) {
+        UnsubMessage msg(request);
+        cout << msg << endl;
+      } else if (type == GET) {
+        GetMessage msg(request);
+        cout << msg << endl;
+      } else {
+        cout << "Invalid message" << endl;
+      }
 
       answer_ack(this->s_subscribe);
     }
@@ -54,41 +74,5 @@ int main() {
   zmqpp::context context;
   Broker broker(context);
   broker.run();
-
-  //// create and bind a server socket
-  // zmqpp::socket pubs(context, zmqpp::socket_type::rep);
-  // pubs.bind("tcp://*:9001");
-
-  // while (1) {
-  // zmqpp::message put_req;
-  // pubs.receive(put_req);
-
-  // string topic, content;
-  // put_req >> topic;
-  // cout << topic << endl;
-
-  // zmqpp::message ok_msg;
-  // ok_msg << zmqpp::signal::ok;
-  // pubs.send(ok_msg);
-  //}
-
-  // while (1) {
-  // zmqpp::message request;
-  // server.receive(request);
-  // std::cout << "Remaining " << request.remaining() << std::endl;
-  // const int *data;
-  // request >> data;
-
-  // int num_neg = 0;
-  // for (int i = 0; i < 10000; ++i) {
-  // if (data[i] == -1)
-  // num_neg++;
-  //}
-  // std::cout << "NUM NEG " << num_neg << std::endl;
-
-  // zmqpp::message response;
-  // response << "Response";
-  // server.send(response);
-  //}
   return 0;
 }

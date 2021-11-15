@@ -35,15 +35,14 @@ int Node::send(zmqpp::socket &socket, zmqpp::message &msg) {
 }
 
 int Node::get(string topic_name, string &content) {
-  cout << topic_name << endl;
-  Message put_msg = PutMessage(topic_name, "CONT");
+  Message put_msg = GetMessage(topic_name);
   zmqpp::message msg = put_msg.to_zmq_msg();
   this->send(this->s_subscribe, msg);
   return 0;
 }
 
 int Node::put(std::string topic_name, std::string content) {
-  Message put_msg = PutMessage(topic_name, "body goes here");
+  PutMessage put_msg = PutMessage(topic_name, "body goes here");
   zmqpp::message msg = put_msg.to_zmq_msg();
   this->send(this->s_publish, msg);
   return 0;

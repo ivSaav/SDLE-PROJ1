@@ -7,6 +7,7 @@ APP_DIR  := $(BUILD)/apps
 INCLUDE  := -Iinclude/
 SRC      :=                      \
    $(wildcard src/*.cpp)         \
+   $(wildcard src/message/*.cpp)         \
 
 OBJECTS  := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES \
@@ -24,6 +25,7 @@ $(APP_DIR)/broker: $(OBJECTS)
 
 $(APP_DIR)/main: $(OBJECTS)
 	@mkdir -p $(@D)
+	echo $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/main $(filter-out %/broker.o, $^) $(LDFLAGS)
 
 -include $(DEPENDENCIES)

@@ -8,7 +8,7 @@ using namespace std;
 
 class Node {
 public:
-  Node(zmqpp::context context)
+  Node(zmqpp::context &context)
       : s_publish(context, zmqpp::socket_type::req),
         s_subscribe(context, zmqpp::socket_type::req) {
 
