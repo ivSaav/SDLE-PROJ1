@@ -1,16 +1,12 @@
+#pragma once
 #include "message.hpp"
 
 class AnswerMessage : public Message {
 public:
-  AnswerMessage() : Message(PUT, ""), body(""){};
-  AnswerMessage(string t_name, string body)
-      : Message(PUT, t_name), body(body) {}
-  AnswerMessage(zmqpp::message &msg) : AnswerMessage() {
-    string t_name, body;
-    // msg >> t_name >> body;
-    msg >> t_name >> body;
-    this->topic_name = t_name;
-    this->body = body;
+  AnswerMessage(string t_name, string body, string id)
+      : Message(ANSWER, t_name, id), body(body) {}
+  AnswerMessage(zmqpp::message &msg) : Message(msg, ANSWER) {
+    msg >> this->body;
   }
 
   virtual zmqpp::message to_zmq_msg() {
@@ -21,14 +17,8 @@ public:
 
   string get_body() { return this->body; }
 
-  friend ostream &operator<<(ostream &os, const AnswerMessage &msg);
+  string to_string() const { return Message::to_string() + ";" + this->body; }
 
 private:
   string body;
 };
-
-inline ostream &operator<<(ostream &os, const AnswerMessage &msg) {
-  os << "[-] " /*TODO use seq number */ << msg.topic_name << " ; " << msg.body
-     << endl;
-  return os;
-}

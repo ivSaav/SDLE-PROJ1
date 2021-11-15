@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdlib>
 #include <iostream>
 #include <zmqpp/zmqpp.hpp>
@@ -8,9 +9,9 @@ using namespace std;
 
 class Node {
 public:
-  Node(zmqpp::context &context)
+  Node(zmqpp::context &context, string id)
       : s_publish(context, zmqpp::socket_type::req),
-        s_subscribe(context, zmqpp::socket_type::req) {
+        s_subscribe(context, zmqpp::socket_type::req), id(id) {
 
     this->s_subscribe.connect("tcp://127.0.0.1:" + to_string(SUB_PORT));
     this->s_publish.connect("tcp://127.0.0.1:" + to_string(PUB_PORT));
@@ -25,6 +26,5 @@ public:
 private:
   zmqpp::socket s_subscribe;
   zmqpp::socket s_publish;
-
-  int send(zmqpp::socket &, zmqpp::message &);
+  string id;
 };

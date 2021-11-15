@@ -1,4 +1,7 @@
+#pragma once
 #include <zmqpp/zmqpp.hpp>
+
+#include "../include/TopicQueue.hpp"
 
 class Broker {
 public:
@@ -8,6 +11,7 @@ public:
 private:
   zmqpp::socket s_publish;
   zmqpp::socket s_subscribe;
+  TopicQueue topic_queue;
 
   void ack();
 };
