@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 
-#include "../include/TopicQueue.hpp"
 #include "../include/exceptions.hpp"
 #include "../include/message/put_msg.hpp"
 #include "../include/node.hpp"

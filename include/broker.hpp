@@ -1,7 +1,7 @@
 #pragma once
 #include <zmqpp/zmqpp.hpp>
 
-#include "../include/TopicQueue.hpp"
+#include "../include/topic_queue.hpp"
 
 class Broker {
 public:
