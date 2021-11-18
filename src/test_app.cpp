@@ -12,10 +12,6 @@ using namespace std;
 
 TestApp::TestApp(string filename){
     this->filename = filename;
-    cout << "building node " << endl;
-    string id = "0";
-    Node n  = Node(this->context,id);
-    cout << "node ok" << endl;
 }
 
 void TestApp::run() {
