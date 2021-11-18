@@ -26,11 +26,14 @@ public:
       : type(type){}
 
   operation_type get_type() { return this->type; }
-  virtual void execute(Node node);
+  virtual void execute(string topic_name, string &msg);
+  virtual void execute(string topic_name);
+  virtual void execute(int time);
 
 
 protected:
   operation_type type;
+
 };
 
 
@@ -39,39 +42,54 @@ protected:
 
 class GetOperation : public Operation {
 public:
-  GetOperation() : Operation(GET) {}
-  void execute(Node node,string topic_name, string &msg) {node.get(topic_name,msg);}
+  GetOperation(zmqpp::context context, string node_id) : Operation(GET) {
+    this->node = new Node(context, node_id);
+  }
+  void execute(string topic_name, string &msg) {this->node->get(topic_name,msg);}
 private:
+  Node *node;
+  
 };
 
 class PutOperation : public Operation {
 public:
-  PutOperation() : Operation(PUT) {}
-  void execute(Node node,string topic_name, string msg) {node.put(topic_name,msg);}
+  PutOperation(zmqpp::context context, string node_id) : Operation(PUT) {
+    this->node = new Node(context, node_id);
+  }
+  void execute(string topic_name, string &msg) {this->node->put(topic_name,msg);}
 private:
+  Node *node;
+  
 };
 
 class SubOperation : public Operation {
 public:
-  SubOperation() : Operation(SUB) {}
-  void execute(Node node,string topic_name) {node.subscribe(topic_name);}
-
+  SubOperation(zmqpp::context context, string node_id) : Operation(SUB) {
+    this->node = new Node(context, node_id);
+  }
+  void execute(string topic_name) {this->node->subscribe(topic_name);}
 private:
+  Node *node;
+  
 };
 
 class UnsubOperation : public Operation {
 public:
-  UnsubOperation() : Operation(UNSUB) {}
-  void execute(Node node,string topic_name) {node.unsubscribe(topic_name);}
-
+  UnsubOperation(zmqpp::context context, string node_id) : Operation(UNSUB) {
+    this->node = new Node(context, node_id);
+  }
+  void execute(string topic_name) {this->node->unsubscribe(topic_name);}
 private:
+  Node *node;
+  
 };
 
-// Function argument equals milliseconds to sleep
+// Function argument equals milliseconds to sleepc
 class SleepOperation : public Operation {
 public:
-  SleepOperation() : Operation(SLEEP) {}
-  void execute(Node node,int time) {usleep(time*1000);}
+  SleepOperation() : Operation(SLEEP) {
+  }
+  void execute(int time) {usleep(time*1000);}
 
 private:
 };
