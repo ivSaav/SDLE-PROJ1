@@ -12,6 +12,10 @@ using namespace std;
 
 TestApp::TestApp(string filename){
     this->filename = filename;
+    cout << "building node " << endl;
+    string id = "0";
+    Node n  = Node(this->context,id);
+    cout << "node ok" << endl;
 }
 
 void TestApp::run() {
@@ -34,6 +38,7 @@ int main(int argc, char *argv[]) {
     if(argc < 2){
         cout << "./testapp filename";
     }
+
     cout << "Running testapp" << endl;
     string filename = argv[1];
     TestApp testapp(filename);
