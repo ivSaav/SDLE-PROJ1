@@ -1,6 +1,6 @@
 # Adapted from: https://www.partow.net/programming/makefile/index.html
-FLAGS := -pedantic-errors -Wall -Wextra -Werror -lzmq -lzmqpp
-LDFLAGS := -lzmq -lzmqpp
+FLAGS := -pedantic-errors -Wall -Wextra -Werror -lzmq -lzmqpp -lpthread
+LDFLAGS := -lzmq -lzmqpp -lpthread
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
 APP_DIR  := $(BUILD)/apps
