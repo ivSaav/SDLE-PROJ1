@@ -2,11 +2,11 @@
 #include <unistd.h>
 #include <zmqpp/zmqpp.hpp>
 
-#include "../include/worker.hpp"
-#include "../include/message/message.hpp"
 #include "../include/message/answer_msg.hpp"
+#include "../include/message/message.hpp"
 #include "../include/message/put_msg.hpp"
 #include "../include/topic_queue.hpp"
+#include "../include/worker.hpp"
 
 using namespace std;
 
@@ -25,8 +25,8 @@ void answer_ack(zmqpp::socket &sock) { answer(sock, zmqpp::signal::ok); }
 
 void answer_nack(zmqpp::socket &sock) { answer(sock, zmqpp::signal::ko); }
 
-
-void handle_get(zmqpp::message &request, TopicQueue &topic_queue, zmqpp::socket s) {
+void handle_get(zmqpp::message &request, TopicQueue &topic_queue,
+                zmqpp::socket &s) {
   GetMessage msg(request);
   cout << msg << endl;
 
@@ -42,7 +42,8 @@ void handle_get(zmqpp::message &request, TopicQueue &topic_queue, zmqpp::socket 
   }
 }
 
-void handle_put(zmqpp::message &request, TopicQueue &topic_queue, zmqpp::socket s) {
+void handle_put(zmqpp::message &request, TopicQueue &topic_queue,
+                zmqpp::socket &s) {
   PutMessage msg(request);
   cout << msg << endl;
 
@@ -50,7 +51,8 @@ void handle_put(zmqpp::message &request, TopicQueue &topic_queue, zmqpp::socket 
   answer_ack(s);
 }
 
-void handle_sub(zmqpp::message &request, TopicQueue &topic_queue, zmqpp::socket s) {
+void handle_sub(zmqpp::message &request, TopicQueue &topic_queue,
+                zmqpp::socket &s) {
   SubMessage msg(request);
   cout << msg << endl;
   if (topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
@@ -61,7 +63,8 @@ void handle_sub(zmqpp::message &request, TopicQueue &topic_queue, zmqpp::socket 
   }
 }
 
-void handle_unsub(zmqpp::message &request, TopicQueue &topic_queue, zmqpp::socket s) {
+void handle_unsub(zmqpp::message &request, TopicQueue &topic_queue,
+                  zmqpp::socket &s) {
   UnsubMessage msg(request);
   cout << msg << endl;
   if (!topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
@@ -69,6 +72,27 @@ void handle_unsub(zmqpp::message &request, TopicQueue &topic_queue, zmqpp::socke
   } else {
     topic_queue.unsubscribe(msg.get_id(), msg.get_topic());
     answer_ack(s);
+  }
+}
+
+void handler(zmqpp::socket &s, TopicQueue &q) {
+  zmqpp::message request;
+  s.receive(request);
+
+  int type;
+  request >> type;
+  cout << "RECEIVED: " + Message::typeStrings[type] << endl;
+
+  if (type == PUT) {
+    handle_put(request, q, s);
+  } else if (type == SUB) {
+    handle_sub(request, q, s);
+  } else if (type == UNSUB) {
+    handle_unsub(request, q, s);
+  } else if (type == GET) {
+    handle_get(request, q, s);
+  } else {
+    cout << "Invalid message" << endl;
   }
 }
 
@@ -92,17 +116,17 @@ void handler(thread::id id) {
     string address, request, e; // e => empty frame
     msg << address << e << request;
     msg.extract(address, e, request);
-    std::cout << "Worker:" << address << "From: " << address << "_" << request << std::endl;
+    std::cout << "Worker:" << address << "From: " << address << "_" << request
+              << std::endl;
 
     zmqpp::message msg1(address, "", "OK");
     worker.send(msg1);
   }
 }
 
-void Worker::run() {
-  t = thread(handler, t.get_id());
+void Worker::run(TopicQueue &t, zmqpp::socket &s) {
+  handler(s, t);
+  // t = thread(handler, t.get_id());
 }
 
-void Worker::join() {
-  t.join();
-}
+void Worker::join() { t.join(); }

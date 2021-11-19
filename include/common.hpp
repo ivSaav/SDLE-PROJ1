@@ -1,2 +1,1 @@
-#define SUB_PORT 9000
-#define PUB_PORT 9001
+#define PROXY_PORT 9000

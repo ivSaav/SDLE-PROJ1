@@ -9,8 +9,7 @@ public:
   void run();
 
 private:
-  zmqpp::socket s_publish;
-  zmqpp::socket s_subscribe;
+  zmqpp::socket socket;
   TopicQueue topic_queue;
 
   void ack();
