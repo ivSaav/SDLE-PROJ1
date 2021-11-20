@@ -10,7 +10,7 @@ class Worker {
 private:
   thread t;
   string id;
-  TopicQueue topic_queue;
+  TopicQueue &topic_queue;
 
 public:
   Worker(TopicQueue &q, string id) : topic_queue(q), id(id) {}

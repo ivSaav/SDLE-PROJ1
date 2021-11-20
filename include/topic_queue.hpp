@@ -2,6 +2,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -17,6 +18,7 @@ using namespace std;
 class TopicQueue {
 private:
   // map<topic_name, queue>
+  mutex  m;
   unordered_map<string, BetterQ> queues;
 
   BetterQ &getQueue(const string topic_name);

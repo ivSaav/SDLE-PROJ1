@@ -2,9 +2,12 @@
 #include "../include/better_q.hpp"
 #include <algorithm>
 #include <iostream>
+#include <mutex>
 
 /* PRIVATE */
 BetterQ &TopicQueue::getQueue(const string topic_name) {
+  lock_guard<mutex> guard(m);
+  
   if (this->queues.find(topic_name) == this->queues.end()) {
     // Need to create new queue
     BetterQ q;
@@ -23,7 +26,7 @@ bool TopicQueue::contains_subscribed(string topic_name) {
 bool TopicQueue::is_subscribed(string peer_id, string topic_name) {
   if (!contains_subscribed(topic_name))
     return false;
-  auto const &q = getQueue(topic_name);
+  auto &q = getQueue(topic_name);
 
   return q.contains_peer(peer_id);
 }
@@ -33,7 +36,10 @@ void TopicQueue::subscribe(string peer_id, string topic_name) {
   BetterQ &q = getQueue(topic_name);
   q.sub_peer(peer_id);
 
+  cout << "GOING TO PRINT";
   cout << *this << endl;
+
+  cout << "PRINTED";
 }
 
 void TopicQueue::unsubscribe(string peer_id, string topic_name) {
@@ -66,7 +72,7 @@ bool TopicQueue::get(string peer_id, string topic_name, string &content) {
 ostream &operator<<(ostream &os, TopicQueue &q) {
   string sep = "---------------------------------------";
   os << "Queues:" << endl;
-  for (auto i : q.queues) {
+  for (auto &i : q.queues) {
     string topic = i.first;
     BetterQ bq = i.second;
     cout << topic << endl;

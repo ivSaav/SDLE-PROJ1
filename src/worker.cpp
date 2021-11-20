@@ -13,6 +13,7 @@ using namespace std;
 
 void Worker::handle_get(zmqpp::message &request, zmqpp::message &response) {
   GetMessage msg(request);
+
   cout << msg << endl;
 
   if (!topic_queue.is_subscribed(msg.get_id(), msg.get_topic()))
@@ -39,9 +40,12 @@ void Worker::handle_sub(zmqpp::message &request, zmqpp::message &response) {
   SubMessage msg(request);
   cout << msg << endl;
   if (topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
+    cout << "\tNOT OK SUB" << endl;
     response.push_back(zmqpp::signal::ko); // Already subscribed
   } else {
+    cout << "\tOK SUB" << endl;
     topic_queue.subscribe(msg.get_id(), msg.get_topic());
+    cout << "DEDCOK" << endl;
     response.push_back(zmqpp::signal::ok);
   }
 }
@@ -50,8 +54,10 @@ void Worker::handle_unsub(zmqpp::message &request, zmqpp::message &response) {
   UnsubMessage msg(request);
   cout << msg << endl;
   if (!topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
+    cout << "\tNOT OK UNSUB" << endl;
     response.push_back(zmqpp::signal::ko);
   } else {
+    cout << "\tOK UNSUB" << endl;
     topic_queue.unsubscribe(msg.get_id(), msg.get_topic());
     response.push_back(zmqpp::signal::ok);
   }
@@ -97,6 +103,8 @@ void Worker::work(string worker_id) {
 
     zmqpp::message response(address, "");
     handler(request, response);
+    cout << "\tSENDING TO " << address << endl;
+    fflush(stdout);
     worker.send(response);
   }
 }

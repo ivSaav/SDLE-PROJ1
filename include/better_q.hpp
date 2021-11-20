@@ -4,6 +4,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
 
 using namespace std;
@@ -16,14 +17,16 @@ private:
   peer_iterator_map peer_map;
   list<string> q;
   int start_cnt = 0;
+  mutex m;
 
   // Iterators
-  bool is_at_end(const list_iter &i) const;
-  bool is_at_start(const list_iter &i) const;
-  string get(const list_iter &i) const;
+  bool is_at_end(const list_iter &i);
+  bool is_at_start(const list_iter &i);
+  string get(const list_iter &i);
 
 public:
   BetterQ() : q(list<string>()) { q.push_back(""); }
+  BetterQ(const BetterQ &bq) : q(bq.q), peer_map(bq.peer_map), m() {}
 
   // List/Queue
   void push_back(string s);
@@ -31,11 +34,13 @@ public:
   void dec_cnt();
   void trim_queue();
 
+  mutex& getM() { return m; }
+
   // Peer
   void sub_peer(string peer_id);
   void unsub_peer(string peer_id);
-  bool contains_peers() const;
-  bool contains_peer(string peer_id) const;
+  bool contains_peers();
+  bool contains_peer(string peer_id);
 
   // Iterators
   string next(string peer_id);
