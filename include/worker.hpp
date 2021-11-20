@@ -22,7 +22,7 @@ public:
   void handle_unsub(zmqpp::message &req, zmqpp::message &rep);
 
 
-  void work(thread::id id);
+  void work(string id);
   void run();
   void join();
 };

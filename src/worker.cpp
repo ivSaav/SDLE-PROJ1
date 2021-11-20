@@ -76,17 +76,14 @@ void Worker::handler(zmqpp::message &request, zmqpp::message &response) {
   }
 }
 
-void Worker::work(thread::id id) {
+void Worker::work(string worker_id) {
   zmqpp::context context;
   zmqpp::socket worker(context, zmqpp::socket_type::req);
 
-  hash<thread::id> hasher;
-  string worker_id = to_string(hasher(id));
   worker.set(zmqpp::socket_option::identity, worker_id);
   worker.connect("tcp://localhost:" + to_string(WORKER_PORT)); // backend
 
   //  Tell backend we're ready for work
-  cout << "RDY: " << worker_id << endl;
   worker.send("READY");
 
   while (1) {
@@ -97,8 +94,6 @@ void Worker::work(thread::id id) {
     worker.receive(request);
     string address, e; // e => empty frame
     request >> address >> e;
-    std::cout << "Worker:" << worker_id << "From: " << address << "_"
-              << "_" << e << std::endl;
 
     zmqpp::message response(address, "");
     handler(request, response);
@@ -107,7 +102,7 @@ void Worker::work(thread::id id) {
 }
 
 void Worker::run() {
-  t = thread(&Worker::work, this, t.get_id());
+  t = thread(&Worker::work, this, this->id);
 }
 
 void Worker::join() { t.join(); }

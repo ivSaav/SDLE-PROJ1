@@ -23,7 +23,7 @@ void Broker::run() {
   poller.add(backend);
   vector<Worker> workers;
   for (int i=0; i<3; ++i) {
-    workers.push_back(Worker(this->topic_queue, "Thread" + i));
+    workers.push_back(Worker(this->topic_queue, to_string(i)));
     workers.at(i).run();
   }
 
@@ -43,18 +43,14 @@ void Broker::run() {
       // e is used to read the empty string between msgs
       string w_address, client_addr, e;
       zmqpp::message rcv;
-      cout << "RCV W" << endl;
       backend.receive(rcv);
-      rcv.extract(w_address, e, client_addr);
       rcv >> w_address >> e >> client_addr;
-      cout << "ADDED WORKER " << w_address << ": " << client_addr << endl;
       worker_queue.push(w_address);
 
       //  If client reply, send rest back to frontend
       if (client_addr.compare("READY") != 0) {
         rcv >> e;
 
-        cout << "SENDING REPLY: " << client_addr << endl;
         zmqpp::message w_rep(client_addr, "");
         // Append request to new message
         while (rcv.remaining()) {
@@ -77,7 +73,6 @@ void Broker::run() {
       worker_addr = worker_queue.front(); // worker_queue [0];
       worker_queue.pop();
 
-      cout << "SENDING TO WORKER:" << worker_addr << " " << client_addr << endl;
       // Add routing to new message
       zmqpp::message w_req(worker_addr, "", client_addr, "");
       // Append request to new message
