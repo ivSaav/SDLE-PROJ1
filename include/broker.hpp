@@ -9,7 +9,8 @@ public:
   void run();
 
 private:
-  zmqpp::socket socket;
+  zmqpp::socket frontend;
+  zmqpp::socket backend;
   TopicQueue topic_queue;
 
   void ack();

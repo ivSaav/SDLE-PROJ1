@@ -11,11 +11,7 @@ using namespace std;
 
 class Node {
 public:
-  Node(zmqpp::context &context, string id)
-      : socket(context, zmqpp::socket_type::req), id(id) {
-
-    this->socket.connect("tcp://127.0.0.1:" + to_string(PROXY_PORT));
-  }
+  Node(zmqpp::context &context, string id);
   ~Node();
 
   int get(std::string topic_name, std::string &msg);

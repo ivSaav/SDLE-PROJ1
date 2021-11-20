@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <queue>
 #include <zmqpp/zmqpp.hpp>
 
 #include "../include/broker.hpp"
@@ -11,20 +12,81 @@
 using namespace std;
 
 Broker::Broker(zmqpp::context &context)
-    : socket(context, zmqpp::socket_type::rep) {
-  socket.bind("tcp://*:" + to_string(PROXY_PORT));
+    : frontend(context, zmqpp::socket_type::router),
+    backend(context, zmqpp::socket_type::router) {
+  frontend.bind("tcp://*:" + to_string(CLIENT_PORT));
+  backend.bind("tcp://*:" + to_string(WORKER_PORT));
 }
 
 void Broker::run() {
   zmqpp::poller poller;
-  poller.add(this->socket);
+  poller.add(backend);
+  vector<Worker> workers;
+  for (int i=0; i<3; ++i) {
+    workers.push_back(Worker(this->topic_queue, "Thread" + i));
+    workers.at(i).run();
+  }
+
+  queue<string> worker_queue; // Contains available workers
 
   while (1) {
+    if (worker_queue.size())
+      poller.add(frontend);
+    else
+      poller.remove(frontend);
+
     poller.poll();
-    if (poller.events(this->socket)) {
-      cout << this->topic_queue << endl;
-      Worker w;
-      w.run(topic_queue, socket);
+
+    if (poller.events(backend)) {
+
+      //  Queue worker address for LRU routing
+      // e is used to read the empty string between msgs
+      string w_address, client_addr, e;
+      zmqpp::message rcv;
+      cout << "RCV W" << endl;
+      backend.receive(rcv);
+      rcv.extract(w_address, e, client_addr);
+      rcv >> w_address >> e >> client_addr;
+      cout << "ADDED WORKER " << w_address << ": " << client_addr << endl;
+      worker_queue.push(w_address);
+
+      //  If client reply, send rest back to frontend
+      if (client_addr.compare("READY") != 0) {
+        rcv >> e;
+
+        cout << "SENDING REPLY: " << client_addr << endl;
+        zmqpp::message w_rep(client_addr, "");
+        // Append request to new message
+        while (rcv.remaining()) {
+          string content;
+          rcv >> content;
+          w_rep.push_back(content);
+        }
+        frontend.send(w_rep);
+      }
+    } else if (poller.has(frontend) && poller.events(frontend)) {
+
+      //  Now get next client request, route to LRU worker
+      //  Client request is [address][empty][request]
+      std::string client_addr, worker_addr, e;
+      zmqpp::message msg;
+      frontend.receive(msg);
+      msg >> client_addr >> e;
+
+      // Pick worker
+      worker_addr = worker_queue.front(); // worker_queue [0];
+      worker_queue.pop();
+
+      cout << "SENDING TO WORKER:" << worker_addr << " " << client_addr << endl;
+      // Add routing to new message
+      zmqpp::message w_req(worker_addr, "", client_addr, "");
+      // Append request to new message
+      while (msg.remaining()) {
+        string content;
+        msg >> content;
+        w_req.push_back(content);
+      }
+      backend.send(w_req);
     }
   }
 }

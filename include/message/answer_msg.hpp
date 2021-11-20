@@ -15,6 +15,11 @@ public:
     return msg;
   }
 
+  virtual void append_to_zmq_msg(zmqpp::message &msg) {
+    Message::append_to_zmq_msg(msg);
+    msg << body;
+  }
+
   string get_body() { return this->body; }
 
   string to_string() const { return Message::to_string() + ";" + this->body; }

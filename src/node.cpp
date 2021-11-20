@@ -10,22 +10,12 @@
 #include "../include/message/put_msg.hpp"
 #include "../include/node.hpp"
 
-int receive_ack(zmqpp::socket &socket) {
-#ifdef DEBUG
-  std::cout << "Awaiting Response" << std::endl;
-#endif
-  zmqpp::message response;
-  socket.receive(response);
-  if (response.is_signal()) {
-    zmqpp::signal resp;
-    response >> resp;
-    if (resp == zmqpp::signal::ok) // TODO Throw exception?
-      return 0;
-  }
-  return 1;
-}
+Node::Node(zmqpp::context &context, string id) :
+  socket(context, zmqpp::socket_type::req), id(id) {
 
-// zmqpp::socket server(context, zmqpp::socket_type::rep);
+    this->socket.connect("tcp://127.0.0.1:" + to_string(CLIENT_PORT));
+    this->socket.set(zmqpp::socket_option::identity, this->id);
+}
 
 Node::~Node() { this->socket.close(); }
 

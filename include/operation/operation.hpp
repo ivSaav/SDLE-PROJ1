@@ -13,7 +13,7 @@ using namespace std;
 // GET MSG
 // UNSUB MSG
 
-typedef enum { PUT = 0, GET = 1, SUB = 2, UNSUB = 3, SLEEP = 4 } operation_type;
+typedef enum { PUT_OP = 0, GET_OP = 1, SUB_OP = 2, UNSUB_OP = 3, SLEEP_OP = 4 } operation_type;
 
 /* Operation CLASS */
 
@@ -35,7 +35,7 @@ protected:
 
 class GetOperation : public Operation {
 public:
-  GetOperation() : Operation(GET) {}
+  GetOperation() : Operation(GET_OP) {}
   void execute(Node node, string topic_name, string &msg) {
     node.get(topic_name, msg);
   }
@@ -45,7 +45,7 @@ private:
 
 class PutOperation : public Operation {
 public:
-  PutOperation() : Operation(PUT) {}
+  PutOperation() : Operation(PUT_OP) {}
   void execute(Node node, string topic_name, string msg) {
     node.put(topic_name, msg);
   }
@@ -55,7 +55,7 @@ private:
 
 class SubOperation : public Operation {
 public:
-  SubOperation() : Operation(SUB) {}
+  SubOperation() : Operation(SUB_OP) {}
   void execute(Node node, string topic_name) { node.subscribe(topic_name); }
 
 private:
@@ -63,7 +63,7 @@ private:
 
 class UnsubOperation : public Operation {
 public:
-  UnsubOperation() : Operation(UNSUB) {}
+  UnsubOperation() : Operation(UNSUB_OP) {}
   void execute(Node node, string topic_name) { node.unsubscribe(topic_name); }
 
 private:
@@ -72,7 +72,7 @@ private:
 // Function argument equals milliseconds to sleep
 class SleepOperation : public Operation {
 public:
-  SleepOperation() : Operation(SLEEP) {}
+  SleepOperation() : Operation(SLEEP_OP) {}
   void execute(Node node, int time) { usleep(time * 1000); }
 
 private:
