@@ -40,6 +40,11 @@ void TopicQueue::unsubscribe(string peer_id, string topic_name) {
   BetterQ &q = getQueue(topic_name);
   q.unsub_peer(peer_id);
   cout << *this << endl;
+
+  if (!this->contains_subscribed(topic_name)) {
+      this->queues.erase(topic_name);
+      std::cout << "DELETE " << topic_name << " (NO SUBS)" << std::endl;
+  }
 }
 
 void TopicQueue::put(string topic_name, string content) {

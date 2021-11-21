@@ -21,9 +21,12 @@ void BetterQ::sub_peer(string peer_id) {
   if (contains_peer(peer_id))
     return;
 
-  list_iter it = q.begin();
+  list_iter it = --q.end();
   peer_map.insert({peer_id, it});
-  ++start_cnt;
+  
+  if (is_at_start(it)) {
+    ++start_cnt;
+  }
 }
 
 void BetterQ::unsub_peer(string peer_id) {
