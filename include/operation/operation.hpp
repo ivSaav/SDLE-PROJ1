@@ -39,7 +39,8 @@ protected:
 
 class GetOperation : public Operation {
 public:
-  GetOperation(string topic_name, string &msg) : Operation(GET), topic_name(topic_name), msg(msg) {}
+  GetOperation(string topic_name) : Operation(GET), topic_name(topic_name), msg(string("")) {
+  }
   void execute(Node* node) {
     node->get(topic_name,msg);
     cout << "GOT: " << msg;
@@ -47,18 +48,21 @@ public:
 
 private:
 string topic_name;
-string& msg;
+string msg;
 
 };
 
 class PutOperation : public Operation {
 public:
   PutOperation(string topic_name, string &msg) : Operation(PUT), topic_name(topic_name), msg(msg) {}
-  void execute(Node* node) {node->put(topic_name,msg);}
+  void execute(Node* node) {
+    cout << "msg to send: " << msg << endl;
+    node->put(topic_name,msg);
+  }
 
 private:
   string topic_name;
-  string& msg;
+  string msg;
 };
 
 class SubOperation : public Operation {
@@ -73,7 +77,10 @@ private:
 class UnsubOperation : public Operation {
 public:
   UnsubOperation(string topic_name) : Operation(UNSUB), topic_name(topic_name) {}
-  void execute(Node* node) {node->unsubscribe(topic_name);}
+  void execute(Node* node) {
+    cout << "unsubscribing from " << topic_name << endl;
+    node->unsubscribe(topic_name);
+  }
 
 private:
   string topic_name;
@@ -83,7 +90,11 @@ private:
 class SleepOperation : public Operation {
 public:
   SleepOperation(int time) : Operation(SLEEP), time(time) {}
-  void execute(Node* node) {usleep(this->time*1000);}
+  void execute(Node* node) {
+    cout << "started sleeping" << endl;
+    usleep(this->time*1000);
+    cout << "finished sleeping" << endl;
+  }
 
 private:
   int time;

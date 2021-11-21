@@ -1,5 +1,4 @@
-PUT brazil afeganistão
-GET brazil 
 SUB brazil
+GET brazil 
+SLEEP 2000
 UNSUB brazil
-SLEEP 100
