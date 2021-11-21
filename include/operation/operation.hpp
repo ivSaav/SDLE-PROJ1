@@ -54,15 +54,19 @@ string msg;
 
 class PutOperation : public Operation {
 public:
-  PutOperation(string topic_name, string &msg) : Operation(PUT), topic_name(topic_name), msg(msg) {}
+  PutOperation(string topic_name, int n_times, string &msg) : Operation(PUT), topic_name(topic_name), n_times(n_times), msg(msg) {}
   void execute(Node* node) {
     cout << "msg to send: " << msg << endl;
-    node->put(topic_name,msg);
+    for(int i = 0; i < n_times; i++){
+      string to_send = msg + " " + to_string(i);
+      node->put(topic_name,to_send);
+    }
   }
 
 private:
   string topic_name;
   string msg;
+  int n_times;
 };
 
 class SubOperation : public Operation {

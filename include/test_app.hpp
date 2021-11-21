@@ -7,7 +7,7 @@ using namespace std;
 class TestApp {
 public:
   TestApp(string filename);
-  void run(zmqpp::context &context);
+  void run(zmqpp::context &context, string node_id);
   void setupOps();
 
 private:

@@ -15,9 +15,9 @@ TestApp::TestApp(string filename){
     this->filename = "../../config/"+filename;
 }
 
-void TestApp::run(zmqpp::context &context) {
+void TestApp::run(zmqpp::context &context,string node_id) {
     string id = "0";
-    Node* peer = new Node(context, id);
+    Node* peer = new Node(context, node_id);
     for(Operation* op: this->ops){
         cout << "executing: " << endl;
         op->execute(peer);
@@ -53,26 +53,42 @@ void TestApp::setupOps(){
             if(i == 0){
                 type = stringToEnum(split_line[i]);
             }
+            else if(i == 2){
+                string msg;
+                getline(aux,msg);
+                split_line[3] = msg;
+            }
             i++;
         }
         switch(type){
-            case PUT:
-                cout << "content: " << split_line[2] << endl;
-                this->ops.push_back(new PutOperation(split_line[1],split_line[2]));
-                break;
             case GET:
+            {
                 this->ops.push_back(new GetOperation(split_line[1]));
                 break;
+            }
             case SUB:
+            {
                 this->ops.push_back(new SubOperation(split_line[1]));
                 break;
+            }
             case UNSUB:
+            {
                 this->ops.push_back(new UnsubOperation(split_line[1]));
                 break;
+            }
             case SLEEP:
+            {
                 string time = split_line[1];
                 this->ops.push_back(new SleepOperation(stoi(time)));
                 break;
+            }
+            case PUT:
+            {
+                cout << "content: " << split_line[2] << endl;
+                string n_times = split_line[2];
+                this->ops.push_back(new PutOperation(split_line[1],stoi(n_times),split_line[3]));
+                break;
+            }
         }
     }
 
@@ -82,8 +98,8 @@ void TestApp::setupOps(){
 }
 
 int main(int argc, char *argv[]) {
-    if(argc < 2){
-        cout << "./testapp filename";
+    if(argc < 3){
+        cout << "./testapp filename node_id";
     }
 
 
@@ -93,7 +109,7 @@ int main(int argc, char *argv[]) {
     string filename = argv[1];
     TestApp testapp(filename);
     testapp.setupOps();
-    testapp.run(context);
+    testapp.run(context,argv[2]);
     cout << "return" << endl;
     fflush(stdout);
     return 0;
