@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#include "../include/better_q.hpp"
 #include "../include/exceptions.hpp"
 #include "../include/message/put_msg.hpp"
 #include "../include/node.hpp"
@@ -11,6 +12,15 @@ void usage() {
 }
 
 int main(int argc, char *argv[]) {
+  // BetterQ q;
+  // q.sub_peer("p1");
+  // q.sub_peer("p2");
+  // q.push_back("c1");
+  // q.push_back("c2");
+  // q.push_back("c3");
+  // q.next("p1");
+  // q.next("p2");
+
   cout << "Running peer" << std::endl;
   zmqpp::context context;
 
@@ -57,33 +67,6 @@ int main(int argc, char *argv[]) {
   } catch (message_error e) {
     cout << e.what() << endl;
   }
-
-  // TopicQueue q;
-
-  // q.put("test", "content1");
-  // q.put("test", "content2");
-  // q.put("test", "content3");
-  // q.put("test", "content4");
-  // q.put("test", "content5");
-  // q.put("test", "content6");
-
-  // string c;
-  // q.subscribe("peer1", "test");
-  // q.subscribe("peer2", "test");
-
-  // bool st;
-  // st = q.get("peer1", "test", c);
-  // st = q.get("peer1", "test", c);
-  // st = q.get("peer1", "test", c);
-  // st = q.get("peer1", "test", c);
-  // st = q.get("peer1", "test", c);
-  // st = q.get("peer2", "test", c);
-  // st = q.get("peer2", "test", c);
-  // st = q.get("peer2", "test", c);
-
-  // q.unsubscribe("peer2", "test");
-  // q.trimQueue("test");
-  // cout << q << endl;
 
   return 0;
 }
