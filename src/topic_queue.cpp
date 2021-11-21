@@ -36,24 +36,17 @@ void TopicQueue::subscribe(string peer_id, string topic_name) {
   // Get map that points to queues
   BetterQ &q = getQueue(topic_name);
   q.sub_peer(peer_id);
-
-  std::cout << "CENAS QQ" << q << std::endl;
 }
 
 void TopicQueue::unsubscribe(string peer_id, string topic_name) {
   lock_guard<mutex> guard(m);
   BetterQ &q = getQueue(topic_name);
   q.unsub_peer(peer_id);
-  // cout << *this << endl;
 
   if (!this->contains_subscribed(topic_name)) {
       this->queues.erase(topic_name);
       std::cout << "DELETE " << topic_name << " (NO SUBS)" << std::endl;
   }
-
-  // TODO: Remove here on 
-
-  std::cout << "CENAS QQ" << q << std::endl;
 }
 
 void TopicQueue::put(string topic_name, string content) {

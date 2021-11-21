@@ -40,6 +40,7 @@ void BetterQ::trim_queue() {
     }
 
     if (is_trimmed) {
+      // Found at least one peer at start of queue
       std::cout << "TRIMMED - removed: " << del_cnt << std::endl;
       return;
     }
@@ -75,8 +76,6 @@ void BetterQ::unsub_peer(string peer_id) {
   // Cheking if queue needs to be trimmed
   if (this->is_at_start(it)) {
     this->dec_cnt();
-    // --start_cnt;
-    std::cout << "Was at start " << start_cnt << std::endl;
   }
 
   peer_map.erase(peer_id);
