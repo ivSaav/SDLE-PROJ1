@@ -62,7 +62,9 @@ void Broker::run() {
         }
         frontend.send(w_rep);
       }
-    } else if (poller.has(frontend) && poller.events(frontend)) {
+    } 
+
+    if (poller.has(frontend) && poller.events(frontend)) {
 
       //  Now get next client request, route to LRU worker
       //  Client request is [address][empty][request]
