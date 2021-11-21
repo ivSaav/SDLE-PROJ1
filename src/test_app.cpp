@@ -63,7 +63,7 @@ void TestApp::setupOps(){
             case GET_OP:
             {
                 string n_times = split_line[2];
-                this->ops.push_back(new GetOperation(split_line[1]));
+                this->ops.push_back(new GetOperation(split_line[1],stoi(n_times)));
                 break;
             }
             case SUB_OP:
