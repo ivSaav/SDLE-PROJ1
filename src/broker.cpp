@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <signal.h>
 #include <queue>
 #include <zmqpp/zmqpp.hpp>
 
@@ -7,9 +8,24 @@
 #include "../include/common.hpp"
 #include "../include/message/answer_msg.hpp"
 #include "../include/message/put_msg.hpp"
-#include "../include/worker.hpp"
 
 using namespace std;
+
+static volatile int s_interrupted = 0;
+static void s_signal_handler (int signal_value)
+{
+    s_interrupted = 1;
+}
+
+static void s_catch_signals (void)
+{
+    struct sigaction action;
+    action.sa_handler = s_signal_handler;
+    action.sa_flags = 0;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGINT, &action, NULL);
+    // sigaction (SIGTERM, &action, NULL);
+}
 
 Broker::Broker(zmqpp::context &context)
     : frontend(context, zmqpp::socket_type::router),
@@ -18,13 +34,27 @@ Broker::Broker(zmqpp::context &context)
   backend.bind("tcp://*:" + to_string(WORKER_PORT));
 }
 
+void Broker::cleanUp() {
+  for (Worker *w: workers) {
+    string worker_addr = w->getId();
+    zmqpp::message w_req(worker_addr, "", zmqpp::signal::stop);
+    backend.send(w_req);
+    w->join();
+    delete(w);
+  }
+
+  this->backend.close();
+  this->frontend.close();
+}
+
 void Broker::run() {
-  vector<Worker*> workers;
-  for (int i=0; i<3; ++i) {
+  for (int i=0; i<NUM_WORKERS; ++i) {
     Worker *w = new Worker(this->topic_queue, to_string(i));
     workers.push_back(w);
     workers.at(i)->run();
   }
+
+  s_catch_signals ();
 
   queue<string> worker_queue; // Contains available workers
 
@@ -32,12 +62,18 @@ void Broker::run() {
     zmqpp::poller poller;
     poller.add(backend);
 
-    if (worker_queue.size())
+    // Don't accept new requests if we don't have workers or
+    // when we want to exit
+    if (worker_queue.size() && s_interrupted == 0)
       poller.add(frontend);
     else
       poller.remove(frontend);
 
     poller.poll();
+    if (s_interrupted == 1 && worker_queue.size() == NUM_WORKERS) {
+      this->cleanUp();
+      break;
+    }
 
     if (poller.events(backend)) {
 
@@ -95,5 +131,6 @@ int main() {
   zmqpp::context context;
   Broker broker(context);
   broker.run();
+  context.terminate();
   return 0;
 }

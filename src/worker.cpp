@@ -104,11 +104,23 @@ void Worker::work() {
     //  Get request, send reply
     zmqpp::message request;
     worker.receive(request);
+
+    if (request.is_signal()) {
+      zmqpp::signal s;
+      request >> s;
+      if (s == zmqpp::signal::stop) {
+        worker.close();
+        context.terminate();
+        return;
+      }
+    }
+
     string address, e; // e => empty frame
     request >> address >> e;
 
     zmqpp::message response(address, "");
     handler(request, response);
+
     cout << "\tSENDING TO " << address << endl;
     fflush(stdout);
     worker.send(response);
