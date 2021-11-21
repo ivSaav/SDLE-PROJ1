@@ -16,7 +16,15 @@ TestApp::TestApp(string filename){
 }
 
 void TestApp::run() {
-  
+    zmqpp::context context;
+    string id = "0";
+    Node* peer = new Node(context, id);
+    for(Operation* op: this->ops){
+        cout << "executing: " << endl;
+        op->execute(peer);
+        cout << op->get_type() << endl;
+    }
+    cout << "Executed all nice" << endl;
 }
 
 operation_type stringToEnum(string operation_type){
@@ -68,9 +76,7 @@ void TestApp::setupOps(){
         }
     }
 
-    for(Operation* v: this->ops){
-        cout << v->get_type() << endl;
-    }
+    
     file.close();
 
 }
