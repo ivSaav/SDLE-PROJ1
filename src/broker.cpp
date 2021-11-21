@@ -131,9 +131,9 @@ void Broker::run() {
 
 void Broker::save_state() {
   ofstream os(STATE_FILE, ios::binary);
-  cereal::BinaryOutputArchive archive( os );
+  cereal::BinaryOutputArchive archive(os);
   
-  archive( this->topic_queue );
+  archive(this->topic_queue);
 }
 
 void Broker::load_state() {

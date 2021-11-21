@@ -26,9 +26,9 @@ private:
 
   friend class cereal::access;
   template <class Archive>
-  void serialize( Archive & ar )
+  void serialize(Archive & ar)
   {
-    ar( queues );
+    ar(queues);
   }
 
 public:

@@ -35,33 +35,44 @@ private:
 
   friend class cereal::access;
   template <class Archive>
-  void save( Archive & ar ) const
+  void save(Archive & ar) const
   {
     map<string, int> srlz_map;
     peer_iterator_map::const_iterator it = peer_map.begin();
-    list<string>::const_iterator list_it;
+    list<string>::const_iterator list_it = q.begin();
 
     while(it != peer_map.end()) {
       list_it = it->second;
-      srlz_map.insert({it->first, distance(q.begin(), list_it)});
+
+      int d = 0;
+      list_it = q.begin();
+      while(list_it != q.end()) {
+        if (list_it == it->second)
+          break;
+        ++list_it;
+        ++d;
+      }
+      
+      srlz_map.insert({it->first, d});
       it++;
     }
+    cout << "DONE" << endl;
 
-    ar( srlz_map, q, start_cnt );
+    ar(srlz_map, q, start_cnt);
   }
   
   template <class Archive>
-  void load( Archive & ar )
+  void load(Archive & ar)
   {
     map<string, int> srlz_map;
-    ar( srlz_map, q, start_cnt );
+    ar(srlz_map, q, start_cnt);
 
     map<string, int>::const_iterator it = srlz_map.begin();
-    list<string>::const_iterator list_it, a;
-    a = q.begin();
+    list<string>::iterator list_it;
 
     while(it != srlz_map.end()) {
-      list_it = advance(a, it->second);
+      list_it = q.begin();
+      advance(list_it, it->second);
       peer_map.insert({it->first, list_it});
       it++;
     } 
