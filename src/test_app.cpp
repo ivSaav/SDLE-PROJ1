@@ -16,7 +16,6 @@ TestApp::TestApp(string filename){
 }
 
 void TestApp::run(zmqpp::context &context,string node_id) {
-    string id = "0";
     Node* peer = new Node(context, node_id);
     for(Operation* op: this->ops){
         cout << "executing: " << endl;
@@ -63,6 +62,7 @@ void TestApp::setupOps(){
         switch(type){
             case GET_OP:
             {
+                string n_times = split_line[2];
                 this->ops.push_back(new GetOperation(split_line[1]));
                 break;
             }

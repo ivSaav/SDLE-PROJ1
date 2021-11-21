@@ -1,4 +1,4 @@
 SUB brazil
-GET brazil 
+GET brazil 1 
 SLEEP 2000
 UNSUB brazil

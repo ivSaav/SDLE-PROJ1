@@ -36,16 +36,21 @@ protected:
 
 class GetOperation : public Operation {
 public:
-  GetOperation(string topic_name) : Operation(GET_OP), topic_name(topic_name), msg(string("")) {
+  GetOperation(string topic_name, int n_times) : Operation(GET_OP), topic_name(topic_name), n_times(n_times), msg(string("")) {
   }
   void execute(Node* node) {
-    node->get(topic_name,msg);
-    cout << "GOT: " << msg;
+    int count = 0;
+    while(count < n_times){
+      node->get(topic_name,msg);
+      cout << "GOT: " << msg;
+      count++;
+    }
   }
 
 private:
 string topic_name;
 string msg;
+int n_times;
 
 };
 
