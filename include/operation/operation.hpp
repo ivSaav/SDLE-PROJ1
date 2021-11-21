@@ -13,65 +13,86 @@ using namespace std;
 // GET MSG
 // UNSUB MSG
 
-typedef enum { PUT = 0, GET = 1, SUB = 2, UNSUB = 3, SLEEP = 4 } operation_type;
+typedef enum { PUT_OP = 0, GET_OP = 1, SUB_OP = 2, UNSUB_OP = 3, SLEEP_OP = 4 } operation_type;
 
 /* Operation CLASS */
 
 class Operation {
 
 public:
-  Operation(){}
+  Operation(){};
 
-  Operation(operation_type type)
-      : type(type){}
+  Operation(operation_type type) : type(type) {}
 
   operation_type get_type() { return this->type; }
-  virtual void execute(Node node);
-
+  virtual void execute(Node* node) = 0;
 
 protected:
   operation_type type;
 };
 
 
-
 /* SUBCLASSES */
 
 class GetOperation : public Operation {
 public:
-  GetOperation() : Operation(GET) {}
-  void execute(Node node,string topic_name, string &msg) {node.get(topic_name,msg);}
+  GetOperation(string topic_name) : Operation(GET_OP), topic_name(topic_name), msg(string("")) {
+  }
+  void execute(Node* node) {
+    node->get(topic_name,msg);
+    cout << "GOT: " << msg;
+  }
+
 private:
+string topic_name;
+string msg;
+
 };
 
 class PutOperation : public Operation {
 public:
-  PutOperation() : Operation(PUT) {}
-  void execute(Node node,string topic_name, string msg) {node.put(topic_name,msg);}
+  PutOperation(string topic_name, string &msg) : Operation(PUT_OP), topic_name(topic_name), msg(msg) {}
+  void execute(Node* node) {
+    cout << "msg to send: " << msg << endl;
+    node->put(topic_name,msg);
+  }
+
 private:
+  string topic_name;
+  string msg;
 };
 
 class SubOperation : public Operation {
 public:
-  SubOperation() : Operation(SUB) {}
-  void execute(Node node,string topic_name) {node.subscribe(topic_name);}
+  SubOperation(string topic_name) : Operation(SUB_OP), topic_name(topic_name) {}
+  void execute(Node* node) {node->subscribe(topic_name);}
 
 private:
+  string topic_name;
 };
 
 class UnsubOperation : public Operation {
 public:
-  UnsubOperation() : Operation(UNSUB) {}
-  void execute(Node node,string topic_name) {node.unsubscribe(topic_name);}
+  UnsubOperation(string topic_name) : Operation(UNSUB_OP), topic_name(topic_name) {}
+  void execute(Node* node) {
+    cout << "unsubscribing from " << topic_name << endl;
+    node->unsubscribe(topic_name);
+  }
 
 private:
+  string topic_name;
 };
 
 // Function argument equals milliseconds to sleep
 class SleepOperation : public Operation {
 public:
-  SleepOperation() : Operation(SLEEP) {}
-  void execute(Node node,int time) {usleep(time*1000);}
+  SleepOperation(int time) : Operation(SLEEP_OP), time(time) {}
+  void execute(Node* node) {
+    cout << "started sleeping" << endl;
+    usleep(this->time*1000);
+    cout << "finished sleeping" << endl;
+  }
 
 private:
+  int time;
 };
