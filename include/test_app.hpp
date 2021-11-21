@@ -12,6 +12,5 @@ public:
 
 private:
   string filename;
-  vector<Operation> ops;
-  zmqpp::context context;
+  vector<Operation*> ops;
 };

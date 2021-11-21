@@ -20,15 +20,13 @@ typedef enum { PUT = 0, GET = 1, SUB = 2, UNSUB = 3, SLEEP = 4 } operation_type;
 class Operation {
 
 public:
-  Operation(){}
+  Operation(){};
 
   Operation(operation_type type)
       : type(type){}
 
   operation_type get_type() { return this->type; }
-  virtual void execute(string topic_name, string &msg);
-  virtual void execute(string topic_name);
-  virtual void execute(int time);
+  virtual void execute(Node node, int time) = 0;
 
 
 protected:
@@ -37,59 +35,53 @@ protected:
 };
 
 
-
 /* SUBCLASSES */
 
 class GetOperation : public Operation {
 public:
-  GetOperation(zmqpp::context context, string node_id) : Operation(GET) {
-    this->node = new Node(context, node_id);
-  }
-  void execute(string topic_name, string &msg) {this->node->get(topic_name,msg);}
+  GetOperation(string topic_name, string &msg) : Operation(GET), topic_name(topic_name), msg(msg) {}
+  void execute(Node node, int time) {node.get(topic_name,msg);}
+
 private:
-  Node *node;
-  
+string topic_name;
+string& msg;
+
 };
 
 class PutOperation : public Operation {
 public:
-  PutOperation(zmqpp::context context, string node_id) : Operation(PUT) {
-    this->node = new Node(context, node_id);
-  }
-  void execute(string topic_name, string &msg) {this->node->put(topic_name,msg);}
+  PutOperation(string topic_name, string &msg) : Operation(PUT), topic_name(topic_name), msg(msg) {}
+  void execute(Node node, int time) {node.put(topic_name,msg);}
+
 private:
-  Node *node;
-  
+  string topic_name;
+  string& msg;
 };
 
 class SubOperation : public Operation {
 public:
-  SubOperation(zmqpp::context context, string node_id) : Operation(SUB) {
-    this->node = new Node(context, node_id);
-  }
-  void execute(string topic_name) {this->node->subscribe(topic_name);}
+  SubOperation(string topic_name) : Operation(SUB), topic_name(topic_name) {}
+  void execute(Node node, int time) {node.subscribe(topic_name);}
+
 private:
-  Node *node;
-  
+  string topic_name;
 };
 
 class UnsubOperation : public Operation {
 public:
-  UnsubOperation(zmqpp::context context, string node_id) : Operation(UNSUB) {
-    this->node = new Node(context, node_id);
-  }
-  void execute(string topic_name) {this->node->unsubscribe(topic_name);}
+  UnsubOperation(string topic_name) : Operation(UNSUB), topic_name(topic_name) {}
+  void execute(Node node, int time) {node.unsubscribe(topic_name);}
+
 private:
-  Node *node;
-  
+  string topic_name;
 };
 
-// Function argument equals milliseconds to sleepc
+// Function argument equals milliseconds to sleep
 class SleepOperation : public Operation {
 public:
-  SleepOperation() : Operation(SLEEP) {
-  }
-  void execute(int time) {usleep(time*1000);}
+  SleepOperation(int time) : Operation(SLEEP), time(time) {}
+  void execute(Node node, int time) {usleep(time*1000);}
 
 private:
+  int time;
 };
