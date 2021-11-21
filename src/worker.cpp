@@ -1,5 +1,7 @@
+#include <cstdio>
 #include <iostream>
 #include <unistd.h>
+#include <functional>
 #include <zmqpp/zmqpp.hpp>
 
 #include "../include/common.hpp"
@@ -82,12 +84,16 @@ void Worker::handler(zmqpp::message &request, zmqpp::message &response) {
   }
 }
 
-void Worker::work(string worker_id) {
+void Worker::work() {
   zmqpp::context context;
   zmqpp::socket worker(context, zmqpp::socket_type::req);
 
-  worker.set(zmqpp::socket_option::identity, worker_id);
+  cout << "ID_ " << this->id << endl; 
+  cout << "ID_ " << this->topic_queue;
+  fflush(stdout);
+  worker.set(zmqpp::socket_option::identity, this->id);
   worker.connect("tcp://localhost:" + to_string(WORKER_PORT)); // backend
+  cout << this->topic_queue;
 
   //  Tell backend we're ready for work
   worker.send("READY");
@@ -110,7 +116,7 @@ void Worker::work(string worker_id) {
 }
 
 void Worker::run() {
-  t = thread(&Worker::work, this, this->id);
+  this->t = thread(&Worker::work, this);
 }
 
 void Worker::join() { t.join(); }

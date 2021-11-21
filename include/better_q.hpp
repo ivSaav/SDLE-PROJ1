@@ -22,6 +22,8 @@ private:
   // Iterators
   bool is_at_end(const list_iter &i);
   bool is_at_start(const list_iter &i);
+  void dec_cnt();
+  void trim_queue();
   string get(const list_iter &i);
 
 public:
@@ -31,8 +33,6 @@ public:
   // List/Queue
   void push_back(string s);
   bool pop_front();
-  void dec_cnt();
-  void trim_queue();
 
   mutex& getM() { return m; }
 

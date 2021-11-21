@@ -19,17 +19,19 @@ Broker::Broker(zmqpp::context &context)
 }
 
 void Broker::run() {
-  zmqpp::poller poller;
-  poller.add(backend);
-  vector<Worker> workers;
+  vector<Worker*> workers;
   for (int i=0; i<3; ++i) {
-    workers.push_back(Worker(this->topic_queue, to_string(i)));
-    workers.at(i).run();
+    Worker *w = new Worker(this->topic_queue, to_string(i));
+    workers.push_back(w);
+    workers.at(i)->run();
   }
 
   queue<string> worker_queue; // Contains available workers
 
   while (1) {
+    zmqpp::poller poller;
+    poller.add(backend);
+
     if (worker_queue.size())
       poller.add(frontend);
     else

@@ -17,6 +17,24 @@ string BetterQ::get(const list_iter &i) {
   return *i;
 }
 
+void BetterQ::dec_cnt() {
+  --start_cnt;
+  if (start_cnt == 0)
+    trim_queue();
+}
+
+void BetterQ::trim_queue() {
+  if (q.size() > 1 && start_cnt == 0) {
+    cout << "TRIMMED" << endl;
+    q.pop_front();
+    *q.begin() = "";
+    for (auto const &i : this->peer_map) {
+      if (is_at_start(i.second))
+        ++start_cnt;
+    }
+  }
+}
+
 /* PUBLIC */
 
 void BetterQ::sub_peer(string peer_id) {
@@ -80,26 +98,6 @@ bool BetterQ::pop_front() {
     return false;
   q.pop_front();
   return true;
-}
-
-void BetterQ::dec_cnt() {
-  lock_guard<mutex> guard(m);
-  --start_cnt;
-  if (start_cnt == 0)
-    trim_queue();
-}
-
-void BetterQ::trim_queue() {
-  if (q.size() > 1 && start_cnt == 0) {
-    cout << "TRIMMED";
-    cout << *this << endl;
-    q.pop_front();
-    *q.begin() = "";
-    for (auto const &i : this->peer_map) {
-      if (is_at_start(i.second))
-        ++start_cnt;
-    }
-  }
 }
 
 ostream &operator<<(ostream &os, BetterQ &q) {
