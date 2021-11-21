@@ -24,6 +24,13 @@ private:
   BetterQ &getQueue(const string topic_name);
   bool contains_subscribed(string topic_name);
 
+  friend class cereal::access;
+  template <class Archive>
+  void serialize( Archive & ar )
+  {
+    ar( queues );
+  }
+
 public:
   TopicQueue() {}
 

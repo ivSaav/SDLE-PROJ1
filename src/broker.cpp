@@ -3,6 +3,9 @@
 #include <signal.h>
 #include <queue>
 #include <zmqpp/zmqpp.hpp>
+#include <fstream>
+// Serialization
+#include <cereal/archives/binary.hpp>
 
 #include "../include/broker.hpp"
 #include "../include/common.hpp"
@@ -126,11 +129,30 @@ void Broker::run() {
   }
 }
 
+void Broker::save_state() {
+  ofstream os(STATE_FILE, ios::binary);
+  cereal::BinaryOutputArchive archive( os );
+  
+  archive( this->topic_queue );
+}
+
+void Broker::load_state() {
+  ifstream is(STATE_FILE, ios::binary);
+  if(is.is_open()) {
+    cereal::BinaryInputArchive archive( is );
+    
+    archive( this->topic_queue );
+    cout << "Loaded state" << endl;
+  }
+}
+
 int main() {
   cout << "Running broker" << std::endl;
   zmqpp::context context;
   Broker broker(context);
-  broker.run();
-  context.terminate();
+  broker.load_state();
+  broker.test();
+  broker.save_state();
+  // context.terminate();
   return 0;
 }

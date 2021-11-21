@@ -6,6 +6,13 @@
 #include <map>
 #include <mutex>
 #include <string>
+// Serialization
+#include <cereal/types/map.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/unordered_map.hpp>
+#include <cereal/types/list.hpp>
+#include <cereal/types/common.hpp>
+#include <cereal/types/memory.hpp>
 
 using namespace std;
 
@@ -25,6 +32,40 @@ private:
   void dec_cnt();
   void trim_queue();
   string get(const list_iter &i);
+
+  friend class cereal::access;
+  template <class Archive>
+  void save( Archive & ar ) const
+  {
+    map<string, int> srlz_map;
+    peer_iterator_map::const_iterator it = peer_map.begin();
+    list<string>::const_iterator list_it;
+
+    while(it != peer_map.end()) {
+      list_it = it->second;
+      srlz_map.insert({it->first, distance(q.begin(), list_it)});
+      it++;
+    }
+
+    ar( srlz_map, q, start_cnt );
+  }
+  
+  template <class Archive>
+  void load( Archive & ar )
+  {
+    map<string, int> srlz_map;
+    ar( srlz_map, q, start_cnt );
+
+    map<string, int>::const_iterator it = srlz_map.begin();
+    list<string>::const_iterator list_it, a;
+    a = q.begin();
+
+    while(it != srlz_map.end()) {
+      list_it = advance(a, it->second);
+      peer_map.insert({it->first, list_it});
+      it++;
+    } 
+  }
 
 public:
   BetterQ() : q(list<string>()) { q.push_back(""); }
