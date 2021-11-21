@@ -51,7 +51,7 @@ string msg;
 
 class PutOperation : public Operation {
 public:
-  PutOperation(string topic_name, int n_times, string &msg) : Operation(PUT), topic_name(topic_name), n_times(n_times), msg(msg) {}
+  PutOperation(string topic_name, int n_times, string &msg) : Operation(PUT_OP), topic_name(topic_name), n_times(n_times), msg(msg) {}
   void execute(Node* node) {
     cout << "msg to send: " << msg << endl;
     for(int i = 0; i < n_times; i++){
