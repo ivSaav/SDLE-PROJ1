@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
   string id = argv[1];
   string type = argv[2];
-  Node peer1 = Node(context, id);
+  Node peer1(context, id);
 
   try {
     if (type == "sub") {

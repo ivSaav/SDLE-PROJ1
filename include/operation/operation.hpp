@@ -21,11 +21,12 @@ class Operation {
 
 public:
   Operation(){};
+  virtual ~Operation(){};
 
   Operation(operation_type type) : type(type) {}
 
   operation_type get_type() { return this->type; }
-  virtual void execute(Node* node) = 0;
+  virtual void execute(Node &node) = 0;
 
 protected:
   operation_type type;
@@ -38,8 +39,8 @@ class GetOperation : public Operation {
 public:
   GetOperation(string topic_name) : Operation(GET_OP), topic_name(topic_name), msg(string("")) {
   }
-  void execute(Node* node) {
-    node->get(topic_name,msg);
+  void execute(Node& node) {
+    node.get(topic_name,msg);
     cout << "GOT: " << msg;
   }
 
@@ -52,11 +53,11 @@ string msg;
 class PutOperation : public Operation {
 public:
   PutOperation(string topic_name, int n_times, string &msg) : Operation(PUT_OP), topic_name(topic_name), n_times(n_times), msg(msg) {}
-  void execute(Node* node) {
+  void execute(Node& node) {
     cout << "msg to send: " << msg << endl;
     for(int i = 0; i < n_times; i++){
       string to_send = msg + " " + to_string(i);
-      node->put(topic_name,to_send);
+      node.put(topic_name,to_send);
     }
   }
 
@@ -69,7 +70,7 @@ private:
 class SubOperation : public Operation {
 public:
   SubOperation(string topic_name) : Operation(SUB_OP), topic_name(topic_name) {}
-  void execute(Node* node) {node->subscribe(topic_name);}
+  void execute(Node& node) {node.subscribe(topic_name);}
 
 private:
   string topic_name;
@@ -78,9 +79,9 @@ private:
 class UnsubOperation : public Operation {
 public:
   UnsubOperation(string topic_name) : Operation(UNSUB_OP), topic_name(topic_name) {}
-  void execute(Node* node) {
+  void execute(Node& node) {
     cout << "unsubscribing from " << topic_name << endl;
-    node->unsubscribe(topic_name);
+    node.unsubscribe(topic_name);
   }
 
 private:
@@ -91,7 +92,7 @@ private:
 class SleepOperation : public Operation {
 public:
   SleepOperation(int time) : Operation(SLEEP_OP), time(time) {}
-  void execute(Node* node) {
+  void execute(Node& node) {
     cout << "started sleeping" << endl;
     usleep(this->time*1000);
     cout << "finished sleeping" << endl;

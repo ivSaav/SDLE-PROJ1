@@ -12,18 +12,20 @@ using namespace std;
 
 
 TestApp::TestApp(string filename){
-    this->filename = "../../config/"+filename;
+    this->filename = filename;
 }
 
 void TestApp::run(zmqpp::context &context,string node_id) {
     string id = "0";
-    Node* peer = new Node(context, node_id);
+    Node peer(context, node_id);
     for(Operation* op: this->ops){
         cout << "executing: " << endl;
         op->execute(peer);
         cout << op->get_type() << endl;
+        delete(op);
     }
     cout << "Executed all nice" << endl;
+
     return;
 }
 
@@ -39,9 +41,7 @@ void TestApp::setupOps(){
     ifstream file(this->filename);
     string line;
     
-    // zmqpp::context context;
-    // Node peer = Node(context, "0");
-
+    cout << filename << endl;
     while(getline(file,line)){
         stringstream aux(line);
         string word;
@@ -102,7 +102,6 @@ int main(int argc, char *argv[]) {
         cout << "./testapp filename node_id";
     }
 
-
     zmqpp::context context;
 
     cout << "Running testapp" << endl;
@@ -112,5 +111,6 @@ int main(int argc, char *argv[]) {
     testapp.run(context,argv[2]);
     cout << "return" << endl;
     fflush(stdout);
+    context.terminate();
     return 0;
 }
