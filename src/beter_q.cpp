@@ -24,16 +24,28 @@ void BetterQ::dec_cnt() {
 }
 
 void BetterQ::trim_queue() {
-  if (q.size() > 1 && start_cnt == 0) {
-    cout << "TRIMMED" << endl;
+
+  int del_cnt = 0;
+  while (q.size() > 1 && start_cnt == 0) {
+    del_cnt++;
     q.pop_front();
     *q.begin() = "";
+
+    bool is_trimmed = false;
     for (auto const &i : this->peer_map) {
-      if (is_at_start(i.second))
+      if (is_at_start(i.second)) {
+        is_trimmed = true;
         ++start_cnt;
+      }
+    }
+
+    if (is_trimmed) {
+      std::cout << "TRIMMED - removed: " << del_cnt << std::endl;
+      return;
     }
   }
 }
+
 
 /* PUBLIC */
 
@@ -59,8 +71,13 @@ void BetterQ::unsub_peer(string peer_id) {
   lock_guard<mutex> guard(m);
 
   list_iter it = peer_map.at(peer_id);
-  if (this->is_at_start(it))
-    --start_cnt;
+
+  // Cheking if queue needs to be trimmed
+  if (this->is_at_start(it)) {
+    this->dec_cnt();
+    // --start_cnt;
+    std::cout << "Was at start " << start_cnt << std::endl;
+  }
 
   peer_map.erase(peer_id);
 }
@@ -88,6 +105,8 @@ string BetterQ::next(string peer_id) {
   string c = *(++i);
   if (was_start)
     this->dec_cnt();
+
+  std::cout << "Calling NEXT " << was_start << std::endl;
 
   return c;
 }
