@@ -24,11 +24,16 @@ public:
 
   Message(zmqpp::message &msg, msg_type type) : Message() {
     this->type = type;
-    msg >> this->topic_name >> this->id;
+    msg >> this->topic_name;
+    msg >> this->id;
   }
 
   virtual zmqpp::message to_zmq_msg() {
     return zmqpp::message(type, topic_name, id);
+  }
+
+  virtual void append_to_zmq_msg(zmqpp::message &msg) {
+    msg << type << topic_name << id;
   }
 
   virtual string to_string() const {

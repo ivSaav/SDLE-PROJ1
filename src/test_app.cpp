@@ -28,11 +28,11 @@ void TestApp::run(zmqpp::context &context,string node_id) {
 }
 
 operation_type stringToEnum(string operation_type){
-    if(operation_type == "PUT") return operation_type::PUT;
-    else if(operation_type == "GET") return operation_type::GET;
-    else if(operation_type == "SUB") return operation_type::SUB;
-    else if(operation_type == "UNSUB") return operation_type::UNSUB;
-    else return operation_type::SLEEP;
+    if(operation_type == "PUT") return operation_type::PUT_OP;
+    else if(operation_type == "GET") return operation_type::GET_OP;
+    else if(operation_type == "SUB") return operation_type::SUB_OP;
+    else if(operation_type == "UNSUB") return operation_type::UNSUB_OP;
+    else return operation_type::SLEEP_OP;
 }
 
 void TestApp::setupOps(){
@@ -61,28 +61,28 @@ void TestApp::setupOps(){
             i++;
         }
         switch(type){
-            case GET:
+            case GET_OP:
             {
                 this->ops.push_back(new GetOperation(split_line[1]));
                 break;
             }
-            case SUB:
+            case SUB_OP:
             {
                 this->ops.push_back(new SubOperation(split_line[1]));
                 break;
             }
-            case UNSUB:
+            case UNSUB_OP:
             {
                 this->ops.push_back(new UnsubOperation(split_line[1]));
                 break;
             }
-            case SLEEP:
+            case SLEEP_OP:
             {
                 string time = split_line[1];
                 this->ops.push_back(new SleepOperation(stoi(time)));
                 break;
             }
-            case PUT:
+            case PUT_OP:
             {
                 cout << "content: " << split_line[2] << endl;
                 string n_times = split_line[2];

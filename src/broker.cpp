@@ -1,5 +1,7 @@
 #include <cstdlib>
 #include <iostream>
+#include <signal.h>
+#include <queue>
 #include <zmqpp/zmqpp.hpp>
 
 #include "../include/broker.hpp"
@@ -9,98 +11,117 @@
 
 using namespace std;
 
-void answer(zmqpp::socket &sock, Message &msg) {
-  zmqpp::message m = msg.to_zmq_msg();
-  sock.send(m);
+static volatile int s_interrupted = 0;
+static void s_signal_handler (int signal_value)
+{
+    s_interrupted = 1;
 }
 
-void answer(zmqpp::socket &sock, zmqpp::signal sig) {
-  zmqpp::message ok_msg;
-  ok_msg << sig;
-  sock.send(ok_msg);
+static void s_catch_signals (void)
+{
+    struct sigaction action;
+    action.sa_handler = s_signal_handler;
+    action.sa_flags = 0;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGINT, &action, NULL);
+    // sigaction (SIGTERM, &action, NULL);
 }
-
-void answer_ack(zmqpp::socket &sock) { answer(sock, zmqpp::signal::ok); }
-
-void answer_nack(zmqpp::socket &sock) { answer(sock, zmqpp::signal::ko); }
 
 Broker::Broker(zmqpp::context &context)
-    : s_publish(context, zmqpp::socket_type::rep),
-      s_subscribe(context, zmqpp::socket_type::rep) {
-  s_publish.bind("tcp://*:" + to_string(PUB_PORT));
-  s_subscribe.bind("tcp://*:" + to_string(SUB_PORT));
+    : frontend(context, zmqpp::socket_type::router),
+    backend(context, zmqpp::socket_type::router) {
+  frontend.bind("tcp://*:" + to_string(CLIENT_PORT));
+  backend.bind("tcp://*:" + to_string(WORKER_PORT));
+}
+
+void Broker::cleanUp() {
+  for (Worker *w: workers) {
+    string worker_addr = w->getId();
+    zmqpp::message w_req(worker_addr, "", zmqpp::signal::stop);
+    backend.send(w_req);
+    w->join();
+    delete(w);
+  }
+
+  this->backend.close();
+  this->frontend.close();
 }
 
 void Broker::run() {
-  zmqpp::poller poller;
-  poller.add(this->s_publish);
-  poller.add(this->s_subscribe);
+  for (int i=0; i<NUM_WORKERS; ++i) {
+    Worker *w = new Worker(this->topic_queue, to_string(i));
+    workers.push_back(w);
+    workers.at(i)->run();
+  }
+
+  s_catch_signals ();
+
+  queue<string> worker_queue; // Contains available workers
 
   while (1) {
+    zmqpp::poller poller;
+    poller.add(backend);
+
+    // Don't accept new requests if we don't have workers or
+    // when we want to exit
+    if (worker_queue.size() && s_interrupted == 0)
+      poller.add(frontend);
+    else
+      poller.remove(frontend);
+
     poller.poll();
-    if (poller.events(this->s_publish)) {
-      zmqpp::message request;
-      this->s_publish.receive(request);
+    if (s_interrupted == 1 && worker_queue.size() == NUM_WORKERS) {
+      this->cleanUp();
+      break;
+    }
 
-      int type;
-      request >> type;
-      if (type == PUT) {
-        PutMessage msg(request);
-        cout << msg << endl;
-        this->topic_queue.put(msg.get_topic(), msg.get_body());
-      } else {
-        cout << "Invalid message" << endl;
-        // TODO Handle this
+    if (poller.events(backend)) {
+
+      //  Queue worker address for LRU routing
+      // e is used to read the empty string between msgs
+      string w_address, client_addr, e;
+      zmqpp::message rcv;
+      backend.receive(rcv);
+      rcv >> w_address >> e >> client_addr;
+      worker_queue.push(w_address);
+
+      //  If client reply, send rest back to frontend
+      if (client_addr.compare("READY") != 0) {
+        rcv >> e;
+
+        zmqpp::message w_rep(client_addr, "");
+        // Append request to new message
+        while (rcv.remaining()) {
+          string content;
+          rcv >> content;
+          w_rep.push_back(content);
+        }
+        frontend.send(w_rep);
       }
+    } 
 
-      cout << this->topic_queue << endl;
+    if (poller.has(frontend) && poller.events(frontend)) {
 
-      answer_ack(this->s_publish);
-    } else if (poller.events(this->s_subscribe)) {
-      zmqpp::message request;
-      this->s_subscribe.receive(request);
-      // TODO Check if message is SUB, UNSUB or GET
+      //  Now get next client request, route to LRU worker
+      //  Client request is [address][empty][request]
+      std::string client_addr, worker_addr, e;
+      zmqpp::message msg;
+      frontend.receive(msg);
+      msg >> client_addr >> e;
 
-      int type;
-      request >> type;
-      cout << "RECEIVED: " + Message::typeStrings[type] << endl;
-      if (type == SUB) {
-        SubMessage msg(request);
-        cout << msg << endl;
-        if (this->topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
-          answer_nack(this->s_subscribe); // Already subscribed
-        } else {
-          this->topic_queue.subscribe(msg.get_id(), msg.get_topic());
-          answer_ack(this->s_subscribe);
-        }
+      // Pick worker
+      worker_addr = worker_queue.front(); // worker_queue [0];
+      worker_queue.pop();
 
-      } else if (type == UNSUB) {
-        UnsubMessage msg(request);
-        cout << msg << endl;
-        if (!this->topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
-          answer_nack(this->s_subscribe);
-        } else {
-          this->topic_queue.unsubscribe(msg.get_id(), msg.get_topic());
-          answer_ack(this->s_subscribe);
-        }
-
-      } else if (type == GET) {
-        GetMessage msg(request);
-        cout << msg << endl;
-
-        if (!this->topic_queue.is_subscribed(msg.get_id(), msg.get_topic()))
-          answer_nack(this->s_subscribe);
-        else {
-          string answer_content = "";
-          this->topic_queue.get(msg.get_id(), msg.get_topic(), answer_content);
-          // If not in queue => answer_content = ""
-          AnswerMessage ans(msg.get_topic(), answer_content, msg.get_id());
-          cout << "\t" << ans << endl;
-          answer(this->s_subscribe, ans);
-        }
-      } else {
-        cout << "Invalid message" << endl;
+      // Add routing to new message
+      zmqpp::message w_req(worker_addr, "", client_addr, "");
+      // Append request to new message
+      while (msg.remaining()) {
+        string content;
+        msg >> content;
+        w_req.push_back(content);
       }
+      backend.send(w_req);
     }
   }
 }
@@ -110,5 +131,6 @@ int main() {
   zmqpp::context context;
   Broker broker(context);
   broker.run();
+  context.terminate();
   return 0;
 }

@@ -5,6 +5,8 @@
 #include "../include/exceptions.hpp"
 #include "../include/message/put_msg.hpp"
 #include "../include/node.hpp"
+#include "../include/worker.hpp"
+#include <unistd.h>
 
 void usage() {
   std::cout
@@ -12,14 +14,17 @@ void usage() {
 }
 
 int main(int argc, char *argv[]) {
-  // BetterQ q;
-  // q.sub_peer("p1");
-  // q.sub_peer("p2");
-  // q.push_back("c1");
-  // q.push_back("c2");
-  // q.push_back("c3");
-  // q.next("p1");
-  // q.next("p2");
+  // Worker a;
+  // a.run();
+  // sleep(10);
+  //  BetterQ q;
+  //  q.sub_peer("p1");
+  //  q.sub_peer("p2");
+  //  q.push_back("c1");
+  //  q.push_back("c2");
+  //  q.push_back("c3");
+  //  q.next("p1");
+  //  q.next("p2");
 
   cout << "Running peer" << std::endl;
   zmqpp::context context;

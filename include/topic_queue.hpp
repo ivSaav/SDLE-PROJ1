@@ -2,6 +2,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -17,6 +18,7 @@ using namespace std;
 class TopicQueue {
 private:
   // map<topic_name, queue>
+  mutex m;
   unordered_map<string, BetterQ> queues;
 
   BetterQ &getQueue(const string topic_name);
@@ -32,38 +34,4 @@ public:
   bool get(string peer_id, string topic_name, string &content);
 
   friend ostream &operator<<(ostream &os, TopicQueue &q);
-};
-
-/*
-   Points to a content in the queue
-*/
-class TopicContentRef {
-private:
-  list<string>::iterator iter;
-  list<string> &q;
-  bool was_in_end = false;
-
-public:
-  TopicContentRef(list<string> &q) : q(q) { iter = q.begin(); }
-
-  bool is_at_end() const {
-    if (iter == q.end())
-      return true;
-
-    auto tmp = iter;
-    ++tmp;
-    return q.end() == tmp;
-  }
-
-  string next(bool w = false) {
-    if (is_at_end())
-      return "";
-
-    string *s = &(*q.begin());
-    cout << s;
-    fflush(stdout);
-    string c = *iter;
-    ++iter;
-    return c;
-  }
 };
