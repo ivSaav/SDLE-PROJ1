@@ -28,6 +28,7 @@ private:
   template <class Archive>
   void serialize(Archive & ar)
   {
+    lock_guard<mutex> guard(m);
     ar(queues);
   }
 

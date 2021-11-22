@@ -12,13 +12,13 @@ class Broker {
 public:
   Broker(zmqpp::context &);
   void run();
-
+  
 private:
+  TopicQueue topic_queue;
+  State state;
   zmqpp::socket frontend;
   zmqpp::socket backend;
-  TopicQueue topic_queue;
   vector<Worker*> workers;
-  State state;
   void cleanUp();
 
   void ack();

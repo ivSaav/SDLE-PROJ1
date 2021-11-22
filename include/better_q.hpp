@@ -44,12 +44,11 @@ private:
   void load(Archive & ar)
   {
     ar(load_map, q, start_cnt);
-    cout << "SIZE DO LOAD MAPA: " << load_map.size() << endl;
   }
 
 public:
   BetterQ() : q(list<string>()) { q.push_back(""); }
-  BetterQ(const BetterQ &bq) : q(bq.q), peer_map(bq.peer_map), m() {}
+  BetterQ(const BetterQ &bq) : q(bq.q), peer_map(bq.peer_map), m(), load_map(bq.load_map) {}
 
   // List/Queue
   void push_back(string s);

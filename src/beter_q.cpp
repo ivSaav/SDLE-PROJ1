@@ -142,17 +142,13 @@ ostream &operator<<(ostream &os, BetterQ &q) {
 }
 
 void BetterQ::load_queue() {
-  cout << "SIZE DO MAPA: " << load_map.size() << endl;
-
   map<string, int>::const_iterator it = load_map.begin();
   list<string>::iterator list_it;
 
   while(it != load_map.end()) {
-    cout << "ENTRE LOOP" << endl;
     list_it = q.begin();
     advance(list_it, it->second);
     peer_map.insert({it->first, list_it});
-    cout << "INSERT: " << it->first << endl;
     it++;
   } 
 }
@@ -172,7 +168,6 @@ void BetterQ::save_queue() {
       ++list_it;
       ++d;
     }
-    cout << "INSERT: " + it->first << '|' << d << endl;
     load_map.insert({it->first, d});
     it++;
   }

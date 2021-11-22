@@ -93,6 +93,8 @@ void TopicQueue:: load_queues() {
 }
 
 void TopicQueue:: save_queues() {
+  lock_guard<mutex> guard(m);
+
   unordered_map<string, BetterQ>::iterator it = queues.begin();
   while(it != queues.end()) {
     it->second.save_queue();
