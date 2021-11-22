@@ -5,7 +5,7 @@
 #include <zmqpp/zmqpp.hpp>
 #include <fstream>
 // Serialization
-#include <cereal/archives/binary.hpp>
+#include <cereal/archives/json.hpp>
 
 #include "../include/broker.hpp"
 #include "../include/common.hpp"
@@ -32,7 +32,8 @@ static void s_catch_signals (void)
 
 Broker::Broker(zmqpp::context &context)
     : frontend(context, zmqpp::socket_type::router),
-    backend(context, zmqpp::socket_type::router) {
+    backend(context, zmqpp::socket_type::router),
+    state(this->topic_queue) {
   frontend.bind("tcp://*:" + to_string(CLIENT_PORT));
   backend.bind("tcp://*:" + to_string(WORKER_PORT));
 }
@@ -60,6 +61,7 @@ void Broker::run() {
   s_catch_signals ();
 
   queue<string> worker_queue; // Contains available workers
+  int num_requests = 0;
 
   while (1) {
     zmqpp::poller poller;
@@ -104,6 +106,12 @@ void Broker::run() {
     } 
 
     if (poller.has(frontend) && poller.events(frontend)) {
+      
+      // Save state
+      if(++num_requests == SAVE_RATE) {
+        this->state.run();
+        num_requests = 0;
+      }
 
       //  Now get next client request, route to LRU worker
       //  Client request is [address][empty][request]
@@ -129,17 +137,10 @@ void Broker::run() {
   }
 }
 
-void Broker::save_state() {
-  ofstream os(STATE_FILE, ios::binary);
-  cereal::BinaryOutputArchive archive(os);
-  
-  archive(this->topic_queue);
-}
-
 void Broker::load_state() {
-  ifstream is(STATE_FILE, ios::binary);
+  ifstream is(STATE_FILE);
   if(is.is_open()) {
-    cereal::BinaryInputArchive archive( is );
+    cereal::JSONInputArchive archive( is );
     
     archive( this->topic_queue );
     cout << "Loaded state" << endl;
@@ -151,8 +152,7 @@ int main() {
   zmqpp::context context;
   Broker broker(context);
   broker.load_state();
-  broker.test();
-  broker.save_state();
-  // context.terminate();
+  broker.run();
+  context.terminate();
   return 0;
 }
