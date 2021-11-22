@@ -40,5 +40,8 @@ public:
   void put(string topic_name, string content);
   bool get(string peer_id, string topic_name, string &content);
 
+  void load_queues();
+  void save_queues();
+
   friend ostream &operator<<(ostream &os, TopicQueue &q);
 };

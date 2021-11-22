@@ -15,8 +15,8 @@ public:
   State(TopicQueue &q) : topic_queue(q) {}
 
   void save();
+  void load();
   void run();
-  void join();
 };
 
 #endif /* ifndef STATE_H */

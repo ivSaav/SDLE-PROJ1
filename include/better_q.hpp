@@ -22,6 +22,7 @@ typedef map<string, list_iter> peer_iterator_map;
 class BetterQ {
 private:
   peer_iterator_map peer_map;
+  map<string, int> load_map;
   list<string> q;
   int start_cnt = 0;
   mutex m;
@@ -35,47 +36,15 @@ private:
 
   friend class cereal::access;
   template <class Archive>
-  void save(Archive & ar) const
-  {
-    map<string, int> srlz_map;
-    peer_iterator_map::const_iterator it = peer_map.begin();
-    list<string>::const_iterator list_it = q.begin();
-
-    while(it != peer_map.end()) {
-      list_it = it->second;
-
-      int d = 0;
-      list_it = q.begin();
-      while(list_it != q.end()) {
-        if (list_it == it->second)
-          break;
-        ++list_it;
-        ++d;
-      }
-      
-      srlz_map.insert({it->first, d});
-      it++;
-    }
-    cout << "DONE" << endl;
-
-    ar(srlz_map, q, start_cnt);
+  void save(Archive & ar) const {
+    ar(load_map, q, start_cnt);
   }
   
   template <class Archive>
   void load(Archive & ar)
   {
-    map<string, int> srlz_map;
-    ar(srlz_map, q, start_cnt);
-
-    map<string, int>::const_iterator it = srlz_map.begin();
-    list<string>::iterator list_it;
-
-    while(it != srlz_map.end()) {
-      list_it = q.begin();
-      advance(list_it, it->second);
-      peer_map.insert({it->first, list_it});
-      it++;
-    } 
+    ar(load_map, q, start_cnt);
+    cout << "SIZE DO LOAD MAPA: " << load_map.size() << endl;
   }
 
 public:
@@ -96,6 +65,9 @@ public:
 
   // Iterators
   string next(string peer_id);
+
+  void save_queue();
+  void load_queue();
 
   friend ostream &operator<<(ostream &os, BetterQ &q);
 };

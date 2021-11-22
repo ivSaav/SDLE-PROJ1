@@ -114,6 +114,7 @@ void BetterQ::push_back(string s) {
   lock_guard<mutex> guard(m);
   q.push_back(s);
 }
+
 bool BetterQ::pop_front() {
   lock_guard<mutex> guard(m);
   if (q.size() == 1)
@@ -138,4 +139,41 @@ ostream &operator<<(ostream &os, BetterQ &q) {
   }
 
   return os;
+}
+
+void BetterQ::load_queue() {
+  cout << "SIZE DO MAPA: " << load_map.size() << endl;
+
+  map<string, int>::const_iterator it = load_map.begin();
+  list<string>::iterator list_it;
+
+  while(it != load_map.end()) {
+    cout << "ENTRE LOOP" << endl;
+    list_it = q.begin();
+    advance(list_it, it->second);
+    peer_map.insert({it->first, list_it});
+    cout << "INSERT: " << it->first << endl;
+    it++;
+  } 
+}
+
+void BetterQ::save_queue() {
+  peer_iterator_map::const_iterator it = peer_map.begin();
+  list<string>::const_iterator list_it = q.begin();
+
+  int d = 0;
+  while(it != peer_map.end()) {
+    d = 0;
+    list_it = q.begin();
+
+    while(list_it != q.end()) {
+      if (list_it == it->second)
+        break;
+      ++list_it;
+      ++d;
+    }
+    cout << "INSERT: " + it->first << '|' << d << endl;
+    load_map.insert({it->first, d});
+    it++;
+  }
 }

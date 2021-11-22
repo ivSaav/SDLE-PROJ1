@@ -52,6 +52,9 @@ void Broker::cleanUp() {
 }
 
 void Broker::run() {
+  // Load state
+  this->state.load();
+
   for (int i=0; i<NUM_WORKERS; ++i) {
     Worker *w = new Worker(this->topic_queue, to_string(i));
     workers.push_back(w);
@@ -106,12 +109,6 @@ void Broker::run() {
     } 
 
     if (poller.has(frontend) && poller.events(frontend)) {
-      
-      // Save state
-      if(++num_requests == SAVE_RATE) {
-        this->state.run();
-        num_requests = 0;
-      }
 
       //  Now get next client request, route to LRU worker
       //  Client request is [address][empty][request]
@@ -133,17 +130,13 @@ void Broker::run() {
         w_req.push_back(content);
       }
       backend.send(w_req);
-    }
-  }
-}
 
-void Broker::load_state() {
-  ifstream is(STATE_FILE);
-  if(is.is_open()) {
-    cereal::JSONInputArchive archive( is );
-    
-    archive( this->topic_queue );
-    cout << "Loaded state" << endl;
+      // Save state
+      if(++num_requests >= SAVE_RATE) {
+        this->state.run();
+        num_requests = 0;
+      }
+    }
   }
 }
 
@@ -151,7 +144,6 @@ int main() {
   cout << "Running broker" << std::endl;
   zmqpp::context context;
   Broker broker(context);
-  broker.load_state();
   broker.run();
   context.terminate();
   return 0;

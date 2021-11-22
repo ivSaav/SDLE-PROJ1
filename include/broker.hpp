@@ -6,13 +6,12 @@
 #include "../include/state.hpp"
 
 #define NUM_WORKERS 3
-#define SAVE_RATE 2
+#define SAVE_RATE 1
 
 class Broker {
 public:
   Broker(zmqpp::context &);
   void run();
-  void load_state();
 
 private:
   zmqpp::socket frontend;
