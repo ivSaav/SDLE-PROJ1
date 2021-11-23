@@ -126,7 +126,7 @@ int TestApp::setupOps()
             }
             case PUT_OP:
             {
-                if(split_line[1] == "" || split_line[2] == ""){
+                if(split_line[1] == "" || split_line[2] == "" || split_line[3] == ""){
                     configUsage(this->filename,counter);
                     return 1;
                 }
