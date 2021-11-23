@@ -4,8 +4,6 @@
 #include "../include/operation/operation.hpp"
 using namespace std;
 
-#define CONFIG_DIR "../../config/"
-
 class TestApp {
 public:
   TestApp(string filename);

@@ -11,7 +11,7 @@ using namespace std;
 
 TestApp::TestApp(string filename)
 {
-    this->filename = CONFIG_DIR + filename;
+    this->filename = filename;
 }
 
 void TestApp::run(zmqpp::context &context, string node_id)
@@ -53,7 +53,7 @@ int TestApp::setupOps()
 
     if (!file.is_open())
     {
-        cout << "ERROR: Failed to read file! Exiting." << endl;
+        cout << "ERROR: Failed to read file: " << this->filename << endl;
         return -1;
     }
 
@@ -130,7 +130,6 @@ int TestApp::setupOps()
                     configUsage(this->filename,counter);
                     return 1;
                 }
-                cout << "content: " << split_line[2] << endl;
                 string n_times = split_line[2];
                 this->ops.push_back(new PutOperation(split_line[1], stoi(n_times), split_line[3]));
                 break;

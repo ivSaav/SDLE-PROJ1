@@ -1,3 +1,0 @@
-PUT brazil 1 ola eu sou o padoru
-SLEEP 5000
-PUT brazil 2 ola eu sou o padoru

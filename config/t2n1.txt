@@ -1,0 +1,6 @@
+SLEEP 4
+PUT top1 5000 ola
+SLEEP 1
+PUT top2 6000 ola
+PUT top1 5000 ole
+PUT top2 4000 ole
