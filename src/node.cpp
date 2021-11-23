@@ -11,60 +11,34 @@
 #include "../include/message/titanic_messages.hpp"
 #include "../include/node.hpp"
 
-Node::Node(zmqpp::context &context, string id)
-    : socket(context, zmqpp::socket_type::req), id(id) {
+Node::Node(zmqpp::context &context, string id) :
+  socket(context, zmqpp::socket_type::req), id(id) {
 
-  this->socket.connect("tcp://127.0.0.1:" + to_string(CLIENT_PORT));
-  this->socket.set(zmqpp::socket_option::identity, this->id);
+    this->socket.connect("tcp://127.0.0.1:" + to_string(CLIENT_PORT));
+    this->socket.set(zmqpp::socket_option::identity, this->id);
 }
 
 Node::~Node() { this->socket.close(); }
 
 int Node::subscribe(std::string topic_name) {
   SubMessage sub_msg = SubMessage(topic_name, this->id);
-  // Send request to server
-  TitanicMessage req_msg(TitanicMessage::REQ_TIT, sub_msg);
+  TitanicGetMessage req_msg(sub_msg, "SDS");
   cout << req_msg.to_string() << endl;
   zmqpp::message msg = req_msg.to_zmq_msg();
   this->socket.send(msg);
-  // Get Response
-  zmqpp::message response;
-  int id;
-  this->socket.receive(response);
-  response >> id;
-  cout << "GOT " << id << endl;
-  zmqpp::signal s;
-  response >> s;
-  assert(zmqpp::signal::ok == s);
+  string resp;
+  this->socket.receive(resp);
+  cout << "GOT " << resp << endl;
 
-  // Poll for reply
-  int num_tries = 3;
-  while (num_tries > 0) {
-    --num_tries;
-    TitanicMessage get_msg(TitanicMessage::GET_TIT, sub_msg, id);
-    zmqpp::message get = get_msg.to_zmq_msg();
-    this->socket.send(get);
-
-    zmqpp::message response;
-    this->socket.receive(response); // TODO set this to non blocking
-    if (response.is_signal()) {
-      zmqpp::signal s;
-      response >> s;
-      if (s == zmqpp::signal::ko) {
-        cout << "Didn't process msg" << endl;
-      }
-    } else { // TODO bad else
-    }
-  }
 
   return 0;
-  // zmqpp::message msg = sub_msg.to_zmq_msg();
-  // this->socket.send(msg);
+  //zmqpp::message msg = sub_msg.to_zmq_msg();
+  //this->socket.send(msg);
 
-  // if (receive_ack(this->socket))
-  // throw AlreadySubscribed(topic_name);
+  //if (receive_ack(this->socket))
+    //throw AlreadySubscribed(topic_name);
 
-  // return 0;
+  //return 0;
 }
 
 int Node::unsubscribe(std::string topic_name) {

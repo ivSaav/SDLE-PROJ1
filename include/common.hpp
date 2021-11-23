@@ -1,11 +1,13 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "../include/message/message.hpp"
 #include <zmqpp/zmqpp.hpp>
+#include "../include/message/message.hpp"
 
 #define CLIENT_PORT 9000
 #define WORKER_PORT 9001
+#define REQUESTS_PORT 9002
+#define FRONTEND_TIT 9003
 
 inline void answer(zmqpp::socket &sock, Message &msg) {
   zmqpp::message m = msg.to_zmq_msg();
@@ -20,9 +22,7 @@ inline void answer(zmqpp::socket &sock, zmqpp::signal sig) {
 
 inline void answer_ack(zmqpp::socket &sock) { answer(sock, zmqpp::signal::ok); }
 
-inline void answer_nack(zmqpp::socket &sock) {
-  answer(sock, zmqpp::signal::ko);
-}
+inline void answer_nack(zmqpp::socket &sock) { answer(sock, zmqpp::signal::ko); }
 
 inline int receive_ack(zmqpp::socket &socket) {
 #ifdef DEBUG

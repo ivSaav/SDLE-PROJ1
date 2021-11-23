@@ -10,57 +10,62 @@ using namespace std;
 
 class TitanicMessage {
 private:
-  int id;
+  string id;
   int type;
-  Message *message = nullptr;
-
 public:
-  const static int REQ_TIT = 0;
+  const static int PUT_TIT = 0;
   const static int GET_TIT = 1;
   const static int DEL_TIT = 2;
-  TitanicMessage(int t, Message m, int id = -1)
-      : id(id), type(t), message(new Message(m)) {}
+  TitanicMessage(int t, string id) : id(id), type(t) {}
   TitanicMessage(zmqpp::message &msg) {
     msg >> id;
     msg >> type;
-    message = new Message(msg);
   }
-  ~TitanicMessage() {
+
+  bool isPut() { return type == PUT_TIT; }
+  bool isGet() { return type == GET_TIT; }
+  bool isDel() { return type == DEL_TIT; }
+
+  string getId() { return id; }
+  virtual zmqpp::message to_zmq_msg() {
+    zmqpp::message m(id, type);
+    return m;
+  }
+
+  virtual string to_string() {
+    string type = isPut() ? "PUT" : "GET";
+    return "ID: " + id + " Type: " + type;
+  }
+};
+
+class TitanicGetMessage : TitanicMessage{
+private:
+  Message *message=nullptr;
+public:
+  TitanicGetMessage(Message m, string id) : TitanicMessage(GET_TIT, id) {
+    message = new Message(m);
+  }
+  TitanicGetMessage(zmqpp::message &msg, string id) : TitanicMessage(GET_TIT, id), message(new Message(msg)) {}
+  ~TitanicGetMessage() {
     if (!message)
       free(message);
   }
 
-  bool isReq() { return type == REQ_TIT; }
-  bool isGet() { return type == GET_TIT; }
-  bool isDel() { return type == DEL_TIT; }
-  int getId() { return id; }
-  Message *getMessage() { return message; }
+  Message* getMessage() { return message; }
 
-  zmqpp::message to_zmq_msg() {
-    zmqpp::message m(id, type);
-    if (message) {
-      zmqpp::message req = message->to_zmq_msg();
-      string c;
-      while (req.remaining()) {
-        req >> c;
-        m << c;
-      }
+  virtual zmqpp::message to_zmq_msg() {
+    zmqpp::message m = TitanicMessage::to_zmq_msg();
+    zmqpp::message req = message->to_zmq_msg();
+    string c;
+    while(req.remaining()) {
+      req >> c;
+      m << c;
     }
     return m;
   }
 
-  string to_string() {
-    string t;
-    if (type == REQ_TIT)
-      t = "REQ";
-    else if (type == DEL_TIT)
-      t = "DEL";
-    else if (type == GET_TIT)
-      t = "GET";
-    string res = "ID: " + std::to_string(id) + " Type: " + t;
-    if (message)
-      res += message->to_string();
-    return res;
+  virtual string to_string() {
+    return  TitanicMessage::to_string() + message->to_string() + "\n";
   }
 };
 

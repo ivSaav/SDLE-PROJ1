@@ -34,7 +34,7 @@ public:
   void push_back(string s);
   bool pop_front();
 
-  mutex &getM() { return m; }
+  mutex& getM() { return m; }
 
   // Peer
   void sub_peer(string peer_id);

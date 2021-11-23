@@ -1,45 +1,49 @@
 #include <cstdlib>
 #include <iostream>
-#include <queue>
 #include <signal.h>
+#include <queue>
 #include <zmqpp/socket.hpp>
 #include <zmqpp/socket_types.hpp>
 #include <zmqpp/zmqpp.hpp>
 
 #include "../include/broker.hpp"
+#include "../include/titanic.hpp"
 #include "../include/common.hpp"
 #include "../include/message/answer_msg.hpp"
 #include "../include/message/put_msg.hpp"
-#include "../include/titanic.hpp"
 
 using namespace std;
 
 static volatile int s_interrupted = 0;
-static void s_signal_handler(int signal_value) { s_interrupted = 1; }
+static void s_signal_handler (int signal_value)
+{
+    s_interrupted = 1;
+}
 
-static void s_catch_signals(void) {
-  struct sigaction action;
-  action.sa_handler = s_signal_handler;
-  action.sa_flags = 0;
-  sigemptyset(&action.sa_mask);
-  sigaction(SIGINT, &action, NULL);
-  // sigaction (SIGTERM, &action, NULL);
+static void s_catch_signals (void)
+{
+    struct sigaction action;
+    action.sa_handler = s_signal_handler;
+    action.sa_flags = 0;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGINT, &action, NULL);
+    // sigaction (SIGTERM, &action, NULL);
 }
 
 Broker::Broker(zmqpp::context &context)
-    : frontend(context, zmqpp::socket_type::rep),
-      backend(context, zmqpp::socket_type::router) {
-  frontend.bind("tcp://*:" + to_string(CLIENT_PORT));
+    : frontend(context, zmqpp::socket_type::router),
+    backend(context, zmqpp::socket_type::router) {
+  frontend.bind("tcp://*:" + to_string(REQUESTS_PORT));
   backend.bind("tcp://*:" + to_string(WORKER_PORT));
 }
 
 void Broker::cleanUp() {
-  for (Worker *w : workers) {
+  for (Worker *w: workers) {
     string worker_addr = w->getId();
     zmqpp::message w_req(worker_addr, "", zmqpp::signal::stop);
     backend.send(w_req);
     w->join();
-    delete (w);
+    delete(w);
   }
 
   this->backend.close();
@@ -47,20 +51,21 @@ void Broker::cleanUp() {
 }
 
 void Broker::run() {
-  for (int i = 0; i < NUM_WORKERS; ++i) {
+  for (int i=0; i<NUM_WORKERS; ++i) {
     Worker *w = new Worker(this->topic_queue, to_string(i));
     workers.push_back(w);
     workers.at(i)->run();
   }
 
-  s_catch_signals();
+  s_catch_signals ();
 
-  queue<string> worker_queue;           // Contains available workers
-  queue<TitanicMessage> requests_queue; // Contains pending requests
+  queue<string> worker_queue; // Contains available workers
+  queue<TitanicGetMessage> requests_queue; // Contains pending requests
 
   while (1) {
     zmqpp::poller poller;
     poller.add(backend);
+    poller.add(frontend);
 
     // Don't accept new requests if we don't have workers or
     // when we want to exit
@@ -75,10 +80,9 @@ void Broker::run() {
       break;
     }
 
-    if (poller.has(frontend) && poller.events(frontend)) {
+    if (poller.events(frontend)) {
       Titanic t;
       zmqpp::message msg;
-      cout << "ACCEPTED FRONTEND " << endl;
       frontend.receive(msg);
       t.handle(msg, frontend, requests_queue);
     }
@@ -92,17 +96,15 @@ void Broker::run() {
       backend.receive(rcv);
       rcv >> w_address >> e >> client_addr;
       worker_queue.push(w_address);
-    }
+    } 
 
     // If we have available workers or pending requests
-    cout << "Workers: " << worker_queue.size()
-         << " Requests:" << requests_queue.size() << endl;
     if (worker_queue.size() > 0 && requests_queue.size() > 0) {
 
       //  Now get next client request, route to LRU worker
       //  Client request is [address][empty][request]
       std::string client_addr, worker_addr, e;
-      TitanicMessage &t_msg = requests_queue.front();
+      TitanicGetMessage &t_msg = requests_queue.front();
       zmqpp::message msg = t_msg.getMessage()->to_zmq_msg();
       // msg >> client_addr >> e;
 
