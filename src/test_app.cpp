@@ -29,7 +29,7 @@ void TestApp::run(zmqpp::context &context, string node_id)
 }
 
 void configUsage(string filename,int line){
-    cout << "Config file " << filename << "has an error on line " << to_string(line) <<  endl;
+    cout << "Config file " << filename << " has an error on line " << to_string(line) <<  endl;
 }
 
 operation_type stringToEnum(string operation_type)
