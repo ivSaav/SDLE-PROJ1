@@ -154,6 +154,8 @@ void BetterQ::load_queue() {
 }
 
 void BetterQ::save_queue() {
+  // Clean map
+  load_map.clear();
   peer_iterator_map::const_iterator it = peer_map.begin();
   list<string>::const_iterator list_it = q.begin();
 
