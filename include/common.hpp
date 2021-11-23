@@ -6,6 +6,8 @@
 
 #define CLIENT_PORT 9000
 #define WORKER_PORT 9001
+#define REQUESTS_PORT 9002
+#define FRONTEND_TIT 9003
 
 inline void answer(zmqpp::socket &sock, Message &msg) {
   zmqpp::message m = msg.to_zmq_msg();

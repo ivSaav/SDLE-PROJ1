@@ -8,6 +8,7 @@
 #include "../include/exceptions.hpp"
 #include "../include/message/answer_msg.hpp"
 #include "../include/message/put_msg.hpp"
+#include "../include/message/titanic_messages.hpp"
 #include "../include/node.hpp"
 
 Node::Node(zmqpp::context &context, string id) :
@@ -21,13 +22,23 @@ Node::~Node() { this->socket.close(); }
 
 int Node::subscribe(std::string topic_name) {
   SubMessage sub_msg = SubMessage(topic_name, this->id);
-  zmqpp::message msg = sub_msg.to_zmq_msg();
+  TitanicGetMessage req_msg(sub_msg, "SDS");
+  cout << req_msg.to_string() << endl;
+  zmqpp::message msg = req_msg.to_zmq_msg();
   this->socket.send(msg);
+  string resp;
+  this->socket.receive(resp);
+  cout << "GOT " << resp << endl;
 
-  if (receive_ack(this->socket))
-    throw AlreadySubscribed(topic_name);
 
   return 0;
+  //zmqpp::message msg = sub_msg.to_zmq_msg();
+  //this->socket.send(msg);
+
+  //if (receive_ack(this->socket))
+    //throw AlreadySubscribed(topic_name);
+
+  //return 0;
 }
 
 int Node::unsubscribe(std::string topic_name) {

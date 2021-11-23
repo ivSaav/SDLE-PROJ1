@@ -22,6 +22,14 @@ public:
   Message(msg_type type, string t_name, string id)
       : type(type), topic_name(t_name), id(id) {}
 
+  Message(zmqpp::message &msg) : Message() {
+    int t;
+    msg >> t;
+    this->type = (msg_type) t;
+    msg >> this->topic_name;
+    msg >> this->id;
+  }
+
   Message(zmqpp::message &msg, msg_type type) : Message() {
     this->type = type;
     msg >> this->topic_name;

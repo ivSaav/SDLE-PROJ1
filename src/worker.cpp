@@ -69,7 +69,7 @@ void Worker::handler(zmqpp::message &request, zmqpp::message &response) {
   int type;
   request >> type;
   string topic_name;
-  cout << "RECEIVED: " + Message::typeStrings[type] << endl;
+  cout << "WORKING ON: " + Message::typeStrings[type] << endl;
 
   if (type == PUT) {
     handle_put(request, response);
@@ -115,13 +115,13 @@ void Worker::work() {
       }
     }
 
-    string address, e; // e => empty frame
-    request >> address >> e;
+    //string address, e; // e => empty frame
+    //request >> address >> e;
 
-    zmqpp::message response(address, "");
+    zmqpp::message response;
     handler(request, response);
 
-    cout << "\tSENDING TO " << address << endl;
+    //cout << "\tSENDING TO " << address << endl;
     fflush(stdout);
     worker.send(response);
   }

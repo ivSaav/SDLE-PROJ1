@@ -3,12 +3,14 @@
 
 #include "../include/topic_queue.hpp"
 #include "../include/worker.hpp"
+#include "../include/titanic.hpp"
 
 #define NUM_WORKERS 3
 
 class Broker {
 public:
   Broker(zmqpp::context &);
+  Titanic titanic;
   void run();
 
 private:
