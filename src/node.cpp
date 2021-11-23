@@ -76,3 +76,7 @@ int Node::put(std::string topic_name, std::string content) {
   this->socket.send(msg);
   return receive_ack(this->socket);
 }
+
+string Node::getId() const {
+  return id;
+}

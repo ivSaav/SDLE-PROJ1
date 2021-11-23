@@ -19,6 +19,8 @@ public:
   int subscribe(std::string topic_name);
   int unsubscribe(std::string topic_name);
 
+  string getId() const;
+
 private:
   zmqpp::socket socket;
   string id;

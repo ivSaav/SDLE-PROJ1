@@ -4,11 +4,13 @@
 #include "../include/operation/operation.hpp"
 using namespace std;
 
+#define CONFIG_DIR "../../config/"
+
 class TestApp {
 public:
   TestApp(string filename);
   void run(zmqpp::context &context, string node_id);
-  void setupOps();
+  int setupOps();
 
 private:
   string filename;
