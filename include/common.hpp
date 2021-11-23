@@ -6,6 +6,7 @@
 
 #define CLIENT_PORT 9000
 #define WORKER_PORT 9001
+#define STATE_FILE "backup.cereal"
 
 inline void answer(zmqpp::socket &sock, Message &msg) {
   zmqpp::message m = msg.to_zmq_msg();

@@ -6,6 +6,13 @@
 #include <map>
 #include <mutex>
 #include <string>
+// Serialization
+#include <cereal/types/map.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/unordered_map.hpp>
+#include <cereal/types/list.hpp>
+#include <cereal/types/common.hpp>
+#include <cereal/types/memory.hpp>
 
 using namespace std;
 
@@ -15,6 +22,7 @@ typedef map<string, list_iter> peer_iterator_map;
 class BetterQ {
 private:
   peer_iterator_map peer_map;
+  map<string, int> load_map;
   list<string> q;
   int start_cnt = 0;
   mutex m;
@@ -26,9 +34,21 @@ private:
   void trim_queue();
   string get(const list_iter &i);
 
+  friend class cereal::access;
+  template <class Archive>
+  void save(Archive & ar) const {
+    ar(load_map, q, start_cnt);
+  }
+  
+  template <class Archive>
+  void load(Archive & ar)
+  {
+    ar(load_map, q, start_cnt);
+  }
+
 public:
   BetterQ() : q(list<string>()) { q.push_back(""); }
-  BetterQ(const BetterQ &bq) : q(bq.q), peer_map(bq.peer_map), m() {}
+  BetterQ(const BetterQ &bq) : q(bq.q), peer_map(bq.peer_map), m(), load_map(bq.load_map) {}
 
   // List/Queue
   void push_back(string s);
@@ -44,6 +64,9 @@ public:
 
   // Iterators
   string next(string peer_id);
+
+  void save_queue();
+  void load_queue();
 
   friend ostream &operator<<(ostream &os, BetterQ &q);
 };

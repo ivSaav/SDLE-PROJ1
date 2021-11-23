@@ -3,6 +3,9 @@
 #include <signal.h>
 #include <queue>
 #include <zmqpp/zmqpp.hpp>
+#include <fstream>
+// Serialization
+#include <cereal/archives/json.hpp>
 
 #include "../include/broker.hpp"
 #include "../include/common.hpp"
@@ -29,7 +32,8 @@ static void s_catch_signals (void)
 
 Broker::Broker(zmqpp::context &context)
     : frontend(context, zmqpp::socket_type::router),
-    backend(context, zmqpp::socket_type::router) {
+    backend(context, zmqpp::socket_type::router),
+    state(this->topic_queue) {
   frontend.bind("tcp://*:" + to_string(CLIENT_PORT));
   backend.bind("tcp://*:" + to_string(WORKER_PORT));
 }
@@ -48,6 +52,9 @@ void Broker::cleanUp() {
 }
 
 void Broker::run() {
+  // Load state
+  this->state.load();
+
   for (int i=0; i<NUM_WORKERS; ++i) {
     Worker *w = new Worker(this->topic_queue, to_string(i));
     workers.push_back(w);
@@ -57,6 +64,7 @@ void Broker::run() {
   s_catch_signals ();
 
   queue<string> worker_queue; // Contains available workers
+  int num_requests = 0;
 
   while (1) {
     zmqpp::poller poller;
@@ -122,6 +130,12 @@ void Broker::run() {
         w_req.push_back(content);
       }
       backend.send(w_req);
+
+      // Save state
+      if(++num_requests >= SAVE_RATE) {
+        this->state.run();
+        num_requests = 0;
+      }
     }
   }
 }

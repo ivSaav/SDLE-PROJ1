@@ -83,3 +83,21 @@ ostream &operator<<(ostream &os, TopicQueue &q) {
 
   return os;
 }
+
+void TopicQueue:: load_queues() {
+  unordered_map<string, BetterQ>::iterator it = queues.begin();
+  while(it != queues.end()) {
+    it->second.load_queue();
+    it++;
+  }
+}
+
+void TopicQueue:: save_queues() {
+  lock_guard<mutex> guard(m);
+
+  unordered_map<string, BetterQ>::iterator it = queues.begin();
+  while(it != queues.end()) {
+    it->second.save_queue();
+    it++;
+  }
+}
