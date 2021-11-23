@@ -3,6 +3,7 @@
 
 class AnswerMessage : public Message {
 public:
+  AnswerMessage() {}
   AnswerMessage(string t_name, string body, string id)
       : Message(ANSWER, t_name, id), body(body) {}
   AnswerMessage(zmqpp::message &msg) : Message(msg, ANSWER) {
@@ -19,6 +20,10 @@ public:
     Message::append_to_zmq_msg(msg);
     msg << body;
   }
+
+  template<class Archive>
+  void serialize(Archive & ar)
+  { ar(cereal::base_class<Message>(this), body); }
 
   string get_body() { return this->body; }
 

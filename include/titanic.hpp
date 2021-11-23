@@ -1,28 +1,39 @@
 #ifndef TITANIC_H
 #define TITANIC_H
 
-#include <functional>
 #include <queue>
-#include <string>
 #include <zmqpp/zmqpp.hpp>
-
-#define REQ_PATH "./requests/"
+#include <string>
+#include <fstream>
+#include <filesystem>
 
 #include "common.hpp"
 #include "message/titanic_messages.hpp"
+#include "file_manager.hpp" // For functions to save
 
 using namespace std;
-
-bool file_exists(string file_name);
-bool file_has_conent(string file_name);
-bool create_file(string file_name);
-bool write_content_file(string file_name, string &content);
-bool get_content_file(string file_name, string &content);
 
 //💑 🚢 🌊 💥 💀
 class Titanic {
 private:
 public:
+  void test() {
+    //create_file("test");
+    //write_content_file("test", "asd");
+    //string c;
+    //cout << "GET: " << get_content_file("test", c) << ": " << c;
+    SubMessage g("t1", "id1");
+
+    write_content_file("test", &g);
+
+    Message m;
+
+    get_content_file("test", m);
+
+    cout << m.to_string() << endl;
+
+    fflush(stdout);
+  }
   void handle(zmqpp::message &req, zmqpp::socket &client,
               queue<TitanicMessage> &requests) {
     TitanicMessage msg(req);

@@ -4,6 +4,8 @@
 #include "../include/message/message.hpp"
 #include <zmqpp/zmqpp.hpp>
 
+#define REQUESTS_PATH "./requests/"
+
 #define CLIENT_PORT 9000
 #define WORKER_PORT 9001
 

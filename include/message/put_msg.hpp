@@ -3,6 +3,7 @@
 
 class PutMessage : public Message {
 public:
+  PutMessage() {}
   PutMessage(string t_name, string body, string id)
       : Message(PUT, t_name, id), body(body) {}
   PutMessage(zmqpp::message &msg) : Message(msg, PUT) { msg >> this->body; }
@@ -12,6 +13,10 @@ public:
     msg << body;
     return msg;
   }
+
+  template<class Archive>
+  void serialize(Archive & ar)
+  { ar(cereal::base_class<Message>(this), body); }
 
   virtual string to_string() const { return Message::to_string() + ";" + body; }
 
