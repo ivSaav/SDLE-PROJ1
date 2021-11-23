@@ -1,3 +1,6 @@
 build
 build/*
 .vscode
+.ccls
+.ccls-cache
+.ccls-cache/*
