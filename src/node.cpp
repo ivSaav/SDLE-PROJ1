@@ -29,18 +29,19 @@ int Node::subscribe(std::string topic_name) {
   this->socket.send(msg);
   // Get Response
   zmqpp::message response;
-  int id;
+  string id;
   this->socket.receive(response);
   response >> id;
   cout << "GOT " << id << endl;
   zmqpp::signal s;
   response >> s;
-  assert(zmqpp::signal::ok == s);
+  assert(zmqpp::signal::ok == s || zmqpp::signal::ko == s);
 
   // Poll for reply
   int num_tries = 3;
   while (num_tries > 0) {
     --num_tries;
+    cout << "====" << endl;
     TitanicMessage get_msg(TitanicMessage::GET_TIT, sub_msg, id);
     zmqpp::message get = get_msg.to_zmq_msg();
     this->socket.send(get);
@@ -52,9 +53,19 @@ int Node::subscribe(std::string topic_name) {
       response >> s;
       if (s == zmqpp::signal::ko) {
         cout << "Didn't process msg" << endl;
+      } else if (s == zmqpp::signal::stop) {
+        cout << "Didn't make request" << endl;
+        return 1;
       }
-    } else { // TODO bad else
+    } else { // Normal message
+      Message m(response);
+      cout << "RECEIVED MESSAGE " << m.get_type() << endl;
+      if (m.get_type() == msg_type::OK)
+        return 0;
+      if (m.get_type() == msg_type::KO)
+        throw AlreadySubscribed(topic_name);
     }
+    usleep(RESEND_TIMEOUT);
   }
 
   return 0;

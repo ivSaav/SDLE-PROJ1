@@ -2,7 +2,7 @@
 #include "../../include/message/answer_msg.hpp"
 #include "../../include/message/put_msg.hpp"
 
-string Message::typeStrings[] = {"PUT", "GET", "SUB", "UNSUB", "ANSWER"};
+string Message::typeStrings[] = {"PUT", "GET", "SUB", "UNSUB", "ANSWER", "OK", "KO"};
 
 CEREAL_REGISTER_TYPE(GetMessage)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Message, GetMessage);
@@ -14,3 +14,7 @@ CEREAL_REGISTER_TYPE(AnswerMessage)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Message, AnswerMessage);
 CEREAL_REGISTER_TYPE(PutMessage)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Message, PutMessage);
+CEREAL_REGISTER_TYPE(OkMessage)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Message, OkMessage);
+CEREAL_REGISTER_TYPE(KoMessage)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Message, KoMessage);

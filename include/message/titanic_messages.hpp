@@ -10,7 +10,7 @@ using namespace std;
 
 class TitanicMessage {
 private:
-  int id;
+  string id;
   int type;
   Message *message = nullptr;
 
@@ -18,7 +18,7 @@ public:
   const static int REQ_TIT = 0;
   const static int GET_TIT = 1;
   const static int DEL_TIT = 2;
-  TitanicMessage(int t, Message m, int id = -1)
+  TitanicMessage(int t, Message m, string id = "-1")
       : id(id), type(t), message(new Message(m)) {}
   TitanicMessage(zmqpp::message &msg) {
     msg >> id;
@@ -33,7 +33,7 @@ public:
   bool isReq() { return type == REQ_TIT; }
   bool isGet() { return type == GET_TIT; }
   bool isDel() { return type == DEL_TIT; }
-  int getId() { return id; }
+  string getId() { return id; }
   Message *getMessage() { return message; }
 
   zmqpp::message to_zmq_msg() {
@@ -57,7 +57,7 @@ public:
       t = "DEL";
     else if (type == GET_TIT)
       t = "GET";
-    string res = "ID: " + std::to_string(id) + " Type: " + t;
+    string res = "ID: " + id + " Type: " + t;
     if (message)
       res += message->to_string();
     return res;

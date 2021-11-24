@@ -36,15 +36,6 @@ inline void create_file(string file_name) {
   ofstream file(REQUESTS_PATH + file_name);
 }
 
-inline bool write_content_file(string file_name, zmqpp::signal s) {
-  create_dir();
-  ofstream file(REQUESTS_PATH + file_name);
-  cereal::XMLOutputArchive oarchive(file);
-
-  oarchive(s);
-  return file.good();
-}
-
 inline bool write_content_file(string file_name, Message *message) {
   create_dir();
   ofstream file(REQUESTS_PATH + file_name);
@@ -66,6 +57,12 @@ inline bool write_content_file(string file_name, Message *message) {
   } else if (message->get_type() == msg_type::ANSWER) {
     AnswerMessage tmp = *(AnswerMessage*) message;
     m = shared_ptr<Message>(new AnswerMessage(tmp));
+  } else if (message->get_type() == msg_type::OK) {
+    OkMessage tmp = *(OkMessage*) message;
+    m = shared_ptr<Message>(new OkMessage(tmp));
+  } else if (message->get_type() == msg_type::KO) {
+    KoMessage tmp = *(KoMessage*) message;
+    m = shared_ptr<Message>(new KoMessage(tmp));
   }
 
   oarchive(m);

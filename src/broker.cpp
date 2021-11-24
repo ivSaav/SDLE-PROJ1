@@ -126,11 +126,11 @@ void Broker::run() {
 
 int main() {
   cout << "Running broker" << std::endl;
-  Titanic t;
-  t.test();
-  //zmqpp::context context;
-  //Broker broker(context);
-  //broker.run();
-  //context.terminate();
+  //Titanic t;
+  //t.test();
+  zmqpp::context context;
+  Broker broker(context);
+  broker.run();
+  context.terminate();
   return 0;
 }

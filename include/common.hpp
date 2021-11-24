@@ -2,12 +2,22 @@
 #define COMMON_H
 
 #include "../include/message/message.hpp"
+#include "../include/message/titanic_messages.hpp"
 #include <zmqpp/zmqpp.hpp>
 
 #define REQUESTS_PATH "./requests/"
 
 #define CLIENT_PORT 9000
 #define WORKER_PORT 9001
+
+inline string hash_message(Message *m) {
+  hash<string> hasher;
+  return to_string(hasher(m->to_string()));
+}
+
+inline string hash_message(TitanicMessage &m) {
+  return hash_message(m.getMessage());
+}
 
 inline void answer(zmqpp::socket &sock, Message &msg) {
   zmqpp::message m = msg.to_zmq_msg();

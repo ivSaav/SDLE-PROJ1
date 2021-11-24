@@ -14,7 +14,7 @@ using namespace std;
 // GET MSG
 // UNSUB MSG
 
-typedef enum { PUT = 0, GET = 1, SUB = 2, UNSUB = 3, ANSWER = 4 } msg_type;
+typedef enum { PUT = 0, GET = 1, SUB = 2, UNSUB = 3, ANSWER = 4, OK = 5, KO = 6 } msg_type;
 
 
 /* MESSAGE CLASS */
@@ -96,6 +96,22 @@ public:
     ar(cereal::base_class<Message>(this));
   }
 
+private:
+};
+
+class OkMessage : public Message {
+public:
+  OkMessage() {}
+  OkMessage(string id) : Message(OK, "-", id) {}
+  virtual zmqpp::message to_zmq_msg() { return  Message::to_zmq_msg(); }
+private:
+};
+
+class KoMessage : public Message {
+public:
+  KoMessage() {}
+  KoMessage(string id) : Message(KO, "-", id) {}
+  virtual zmqpp::message to_zmq_msg() { return  Message::to_zmq_msg(); }
 private:
 };
 
