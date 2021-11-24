@@ -1,4 +1,5 @@
 # SDLE Project1
+A reliable publish-subscribe service developed for the SDLE course.
 
 ## Usage
 
