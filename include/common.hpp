@@ -7,7 +7,7 @@
 
 #define REQUESTS_PATH "./requests/"
 
-#define PROCESS_TIMEOUT 500 // Interval to wait between sending request and getting it
+#define PROCESS_TIMEOUT 5000 // Interval to wait between sending request and getting it
 #define RESEND_TIMEOUT 500000 // Interval between polling requests
 
 

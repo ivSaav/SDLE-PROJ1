@@ -1,3 +1,6 @@
-SUB t1
+SLEEP 2000
+PUT top1 5000 ola
 SLEEP 1000
-GET t1 1000
+PUT top2 6000 ola
+PUT top1 5000 ole
+PUT top2 4000 ole
