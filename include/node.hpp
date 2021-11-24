@@ -18,6 +18,8 @@ public:
   int unsubscribe(std::string topic_name);
   void print(); // Print topic queue in broker, For debugging
 
+  string getId() const;
+
 private:
 
   int send_request(Message *m, string &request_id, int max_retries=1);

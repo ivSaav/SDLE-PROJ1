@@ -24,6 +24,14 @@ private:
   BetterQ &getQueue(const string topic_name);
   bool contains_subscribed(string topic_name);
 
+  friend class cereal::access;
+  template <class Archive>
+  void serialize(Archive & ar)
+  {
+    lock_guard<mutex> guard(m);
+    ar(queues);
+  }
+
 public:
   TopicQueue() {}
 
@@ -32,6 +40,9 @@ public:
   void unsubscribe(string peer_id, string topic_name);
   void put(string topic_name, string content);
   bool get(string peer_id, string topic_name, string &content);
+
+  void load_queues();
+  void save_queues();
 
   friend ostream &operator<<(ostream &os, TopicQueue &q);
 };

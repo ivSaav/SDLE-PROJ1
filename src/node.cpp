@@ -158,6 +158,7 @@ int Node::unsubscribe(std::string topic_name) {
   shared_ptr<Message> response;
   string req_id;
 
+
   if (this->send_request(&unsub_msg, req_id)) throw FailedRequestBegin(topic_name);
   if (this->get_request(req_id, response)) {
     this->delete_request(req_id);
@@ -229,4 +230,8 @@ int Node::put(std::string topic_name, std::string content) {
 void Node::print() {
   socket.send(zmqpp::signal::test);
   receive_ack(socket);
+}
+
+string Node::getId() const {
+  return id;
 }

@@ -1,0 +1,9 @@
+SUB top1
+SUB top2
+GET top1 3000
+SLEEP 2
+GET top2 4000
+GET top1 7000
+GET top2 6000
+UNSUB top1
+UNSUB top2

@@ -13,6 +13,7 @@
 
 #define CLIENT_PORT 9000
 #define WORKER_PORT 9001
+#define STATE_FILE "backup.cereal"
 
 inline string hash_message(Message *m) {
   hash<string> hasher;
