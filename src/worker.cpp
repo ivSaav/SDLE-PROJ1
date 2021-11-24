@@ -17,7 +17,6 @@ using namespace std;
 void Worker::handle_get(zmqpp::message &request) {
   GetMessage msg(request);
   string hash_id = hash_message(&msg);
-  cout << msg << endl;
 
   if (!topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
     KoMessage ko(msg.get_id());
@@ -27,17 +26,14 @@ void Worker::handle_get(zmqpp::message &request) {
     string answer_content = "";
     topic_queue.get(msg.get_id(), msg.get_topic(), answer_content);
     // If not in queue => answer_content = ""
-    if (answer_content != "") { // We can't finish the request
-      AnswerMessage ans(msg.get_topic(), answer_content, msg.get_id());
-      write_content_file(hash_id, &ans);
-    }
+    AnswerMessage ans(msg.get_topic(), answer_content, msg.get_id());
+    write_content_file(hash_id, &ans);
   }
 }
 
 void Worker::handle_put(zmqpp::message &request) {
   PutMessage msg(request);
   string hash_id = hash_message(&msg);
-  cout << msg << endl;
 
   topic_queue.put(msg.get_topic(), msg.get_body());
   OkMessage ok(msg.get_id());
@@ -47,14 +43,11 @@ void Worker::handle_put(zmqpp::message &request) {
 void Worker::handle_sub(zmqpp::message &request) {
   SubMessage msg(request);
   string hash_id = hash_message(&msg);
-  cout << msg << endl;
 
   if (topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
-    cout << "\tNOT OK SUB" << endl;
     KoMessage ko(msg.get_id());
     write_content_file(hash_id, &ko);
   } else {
-    cout << "\tOK SUB" << endl;
     topic_queue.subscribe(msg.get_id(), msg.get_topic());
     OkMessage ok(msg.get_id());
     write_content_file(hash_id, &ok);
@@ -65,13 +58,10 @@ void Worker::handle_unsub(zmqpp::message &request) {
   UnsubMessage msg(request);
   string hash_id = hash_message(&msg);
 
-  cout << msg << endl;
   if (!topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
-    cout << "\tNOT OK UNSUB" << endl;
     KoMessage ko(msg.get_id());
     write_content_file(hash_id, &ko);
   } else {
-    cout << "\tOK UNSUB" << endl;
     OkMessage ok(msg.get_id());
     write_content_file(hash_id, &ok);
   }
@@ -81,7 +71,9 @@ void Worker::handler(zmqpp::message &request) {
   int type;
   request >> type;
   string topic_name;
+#ifdef DEBUG
   cout << "WORKING ON: " + Message::typeStrings[type] << endl;
+#endif
 
   if (type == PUT) {
     handle_put(request);
@@ -92,7 +84,7 @@ void Worker::handler(zmqpp::message &request) {
   } else if (type == GET) {
     handle_get(request);
   } else {
-    cout << "Invalid message" << endl;
+    cout << "Invalid message request in worker" << endl;
   }
 }
 
@@ -100,12 +92,9 @@ void Worker::work() {
   zmqpp::context context;
   zmqpp::socket worker(context, zmqpp::socket_type::req);
 
-  cout << "ID_ " << this->id << endl; 
-  cout << "ID_ " << this->topic_queue;
   fflush(stdout);
   worker.set(zmqpp::socket_option::identity, this->id);
   worker.connect("tcp://localhost:" + to_string(WORKER_PORT)); // backend
-  cout << this->topic_queue;
 
   while (1) {
     //  Tell backend we're ready for work
@@ -118,7 +107,6 @@ void Worker::work() {
     worker.receive(request);
 
     if (request.is_signal()) { // Request from dad to stop
-      cout << "SIGNAL?" << endl;
       zmqpp::signal s;
       request >> s;
       if (s == zmqpp::signal::stop) {

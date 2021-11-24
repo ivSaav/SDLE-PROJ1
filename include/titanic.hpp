@@ -23,35 +23,39 @@ public:
     TitanicMessage msg(req);
 
     if (msg.isDel()) {
-      cout << msg.to_string() << endl;
+    #ifdef DEBUG
       cout << "DELETING " << msg.getId() << endl;
+    #endif
       if (file_exists(msg.getId()))
         delete_file(msg.getId());
 
       client.send(zmqpp::signal::ok);
     } else if (msg.isReq()) {
-      cout << "REQ" << endl;
-      cout << "SENDING TO WORKER " << msg.to_string() << endl;
-
       string hash_id = hash_message(msg);
+
+    #ifdef DEBUG
+      cout << "HANDLING SOMETHING" << endl;
+    #endif
+
       if (file_exists(hash_id)){ // Request already made
         zmqpp::message response(hash_id, zmqpp::signal::ko);
         client.send(response);
       } else {
-        cout << "accepted request " << hash_id;
         create_file(hash_id);
+        cout << "SENDING TO WORKER " << msg.to_string() << endl;
         requests.push(msg);
         zmqpp::message response(hash_id, zmqpp::signal::ok);
         client.send(response);
       }
     } else if (msg.isGet()) {
       string id = msg.getId();
-      cout << "getting request " << msg.to_string();
       if (file_exists(id)) {  // Request was made
         if (file_has_content(id)) { // Request was processed
           shared_ptr<Message> response;
           get_content_file(id, response);
-          cout << "FINISHED " << response->to_string() << endl;
+        #ifdef DEBUG
+          cout << "REPLY GET WITH: " << response->to_string() << endl;
+        #endif
           zmqpp::message m = response->to_zmq_msg();
           client.send(m);
         } else {

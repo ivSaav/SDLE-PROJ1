@@ -29,11 +29,6 @@ int main(int argc, char *argv[]) {
   cout << "Running peer" << std::endl;
   zmqpp::context context;
 
-  if (argc < 3) {
-    usage();
-    return 1;
-  }
-
   string id = argv[1];
   string type = argv[2];
   Node peer1(context, id);
@@ -66,6 +61,8 @@ int main(int argc, char *argv[]) {
       string res;
       peer1.get(topic, res);
       cout << "GOT: " << res;
+    } else if (type == "print") {
+      peer1.print();
     } else
       usage();
 

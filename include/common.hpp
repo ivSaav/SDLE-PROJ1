@@ -7,6 +7,10 @@
 
 #define REQUESTS_PATH "./requests/"
 
+#define PROCESS_TIMEOUT 500 // Interval to wait between sending request and getting it
+#define RESEND_TIMEOUT 500000 // Interval between polling requests
+
+
 #define CLIENT_PORT 9000
 #define WORKER_PORT 9001
 

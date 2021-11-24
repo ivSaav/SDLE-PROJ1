@@ -22,7 +22,9 @@ int Node::send_request(Message *m, string &request_id, int max_retries) {
   while (n_tries < max_retries && !done) {
     ++n_tries;
 
-    cout << "SENDING REQUEST" << req_msg.to_string() << endl;
+  #ifdef DEBUG
+    cout << "SENDING: " << req_msg.to_string() << endl;
+  #endif
     zmqpp::message msg = req_msg.to_zmq_msg();
     this->socket.send(msg);
 
@@ -30,13 +32,12 @@ int Node::send_request(Message *m, string &request_id, int max_retries) {
     zmqpp::message response;
     this->socket.receive(response);
     response >> request_id;
-    cout << "GOT " << request_id << endl;
     zmqpp::signal s;
     response >> s;
-    if (zmqpp::signal::ok == s) {
+    if (zmqpp::signal::ok == s) { // Request sent success
       done = true;
-    } else if (zmqpp::signal::ko == s) {
-      usleep(RESEND_TIMEOUT);
+    } else if (zmqpp::signal::ko == s) { // Request already sent, no need
+      done = true;
     } else {
       throw InvalidMessage("REQ", TitanicMessage::REQ_TIT);
     }
@@ -53,8 +54,13 @@ int Node::get_request(string request_id, shared_ptr<Message> &response, int max_
   bool done = false;
   while (num_tries < max_retries && !done) {
     ++num_tries;
+    usleep(PROCESS_TIMEOUT); // Wait for server to process
+
     // Send get request
     TitanicMessage get_msg(TitanicMessage::GET_TIT, request_id);
+  #ifdef DEBUG
+    cout << "SENDING: " << get_msg.to_string() << endl;
+  #endif
     zmqpp::message get = get_msg.to_zmq_msg();
     this->socket.send(get);
 
@@ -66,6 +72,7 @@ int Node::get_request(string request_id, shared_ptr<Message> &response, int max_
       zmqpp::signal s;
       zmq_response >> s;
       if (s == zmqpp::signal::ko) { // Still waiting for server
+        cout << "Server doesn't have request yet, retrying" << endl;
         usleep(RESEND_TIMEOUT);
       } else if (s == zmqpp::signal::stop) { // Server has no knowledge of request
         return -1;
@@ -93,7 +100,9 @@ int Node::delete_request(string request_id) {
   int num_tries = 0;
   // Send delete request
   TitanicMessage del_msg(TitanicMessage::DEL_TIT, request_id);
-  cout << del_msg.to_string() << endl;
+#ifdef DEBUG
+  cout << "SENDING: " << del_msg.to_string() << endl;
+#endif
 
   zmqpp::message zmq_msg = del_msg.to_zmq_msg();
   this->socket.send(zmq_msg);
@@ -125,7 +134,7 @@ Node::Node(zmqpp::context &context, string id)
 Node::~Node() { this->socket.close(); }
 
 int Node::subscribe(std::string topic_name) {
-  SubMessage sub_msg = SubMessage(topic_name, this->id);
+  SubMessage sub_msg = SubMessage(topic_name, this->id, ++seq_num);
   shared_ptr<Message> response;
   string req_id;
 
@@ -145,7 +154,7 @@ int Node::subscribe(std::string topic_name) {
 }
 
 int Node::unsubscribe(std::string topic_name) {
-  UnsubMessage unsub_msg = UnsubMessage(topic_name, this->id);
+  UnsubMessage unsub_msg = UnsubMessage(topic_name, this->id, ++seq_num);
   shared_ptr<Message> response;
   string req_id;
 
@@ -166,22 +175,36 @@ int Node::unsubscribe(std::string topic_name) {
 }
 
 int Node::get(string topic_name, string &content) {
-  Message get_msg = GetMessage(topic_name, this->id);
+  Message get_msg = GetMessage(topic_name, this->id, ++seq_num);
   shared_ptr<Message> response;
   string req_id;
 
-  if (this->send_request(&get_msg, req_id)) throw FailedRequestBegin(topic_name);
-  if (this->get_request(req_id, response , INT32_MAX)) {
-    this->delete_request(req_id);
-    throw FailedRequestRetreive(topic_name);
+  bool done = false;
+  while (!done) { // Get must be blocking
+    if (this->send_request(&get_msg, req_id)) continue; // Can't connect to server
+
+    int get_response = this->get_request(req_id, response);
+    if (get_response == -1) { // Can't establish connection with server
+      this->delete_request(req_id);
+      throw FailedRequestRetreive(topic_name);
+    } else if (get_response == 1) { // Server is still processing request
+      continue;
+    }
+
+    if (this->delete_request(req_id)) throw FailedRequestDelete(topic_name);
+
+    if (response->get_type() == msg_type::KO)
+     throw NotSubscribed(topic_name);
+
+    AnswerMessage* answer_response = (AnswerMessage*) &(*response);
+    content = answer_response->get_body();
+    if (content == "") {
+      usleep(RESEND_TIMEOUT);
+    } else {
+      done = true;
+    }
   }
-  if (this->delete_request(req_id)) throw FailedRequestDelete(topic_name);
 
-  if (response->get_type() == msg_type::KO)
-   throw NotSubscribed(topic_name);
-
-  AnswerMessage* answer_response = (AnswerMessage*) &(*response);
-  content = answer_response->get_body();
   return 0;
 }
 
@@ -189,7 +212,7 @@ int Node::put(std::string topic_name, std::string content) {
   if (content == "")
     throw InvalidContent(topic_name);
 
-  PutMessage put_msg = PutMessage(topic_name, content, this->id);
+  PutMessage put_msg = PutMessage(topic_name, content, this->id, ++seq_num);
   shared_ptr<Message> response;
   string req_id;
 
@@ -200,4 +223,10 @@ int Node::put(std::string topic_name, std::string content) {
   if (response->get_type() == msg_type::OK)
    return 0;
   return 1;
+}
+
+
+void Node::print() {
+  socket.send(zmqpp::signal::test);
+  receive_ack(socket);
 }

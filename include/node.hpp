@@ -5,8 +5,6 @@
 
 #include "../include/common.hpp"
 
-#define RESEND_TIMEOUT 500000 // Interval between GET msg's in micros
-
 using namespace std;
 
 class Node {
@@ -18,6 +16,7 @@ public:
   int put(std::string topic_name, std::string msg);
   int subscribe(std::string topic_name);
   int unsubscribe(std::string topic_name);
+  void print(); // Print topic queue in broker, For debugging
 
 private:
 
@@ -26,6 +25,7 @@ private:
   int delete_request(string id);
   void make_request(Message *request, Message &response);
 
+  int seq_num=0;
   zmqpp::socket socket;
   string id;
 };

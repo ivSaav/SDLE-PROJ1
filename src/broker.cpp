@@ -76,11 +76,18 @@ void Broker::run() {
     }
 
     if (poller.has(frontend) && poller.events(frontend)) {
-      Titanic t;
       zmqpp::message msg;
-      cout << "ACCEPTED FRONTEND " << endl;
       frontend.receive(msg);
-      t.handle(msg, frontend, requests_queue);
+      if (msg.is_signal()) { // Debug print msg
+        zmqpp::signal sig;
+        msg >> sig;
+        if (sig == zmqpp::signal::test)
+          cout << topic_queue << endl;
+        frontend.send(zmqpp::signal::ok);
+      } else {
+        Titanic t;
+        t.handle(msg, frontend, requests_queue);
+      }
     }
 
     if (poller.events(backend)) {

@@ -27,7 +27,7 @@ public:
 
   string get_body() { return this->body; }
 
-  string to_string() const { return Message::to_string() + ";" + this->body; }
+  string to_string() const { return Message::to_string() + " body(" + this->body + ")"; }
 
 private:
   string body;

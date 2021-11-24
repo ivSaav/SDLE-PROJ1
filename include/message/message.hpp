@@ -25,8 +25,8 @@ public:
   Message(){};
   Message(const Message &m) : type(m.type), topic_name(m.topic_name), id(m.id) {};
 
-  Message(msg_type type, string t_name, string id)
-      : type(type), topic_name(t_name), id(id) {}
+  Message(msg_type type, string t_name, string id, int seq_num=0)
+      : type(type), topic_name(t_name), id(id), seq_num(seq_num) {}
 
   Message(zmqpp::message &msg) : Message() {
     int t;
@@ -34,31 +34,31 @@ public:
     this->type = (msg_type) t;
     msg >> this->topic_name;
     msg >> this->id;
+    msg >>seq_num;
   }
 
   Message(zmqpp::message &msg, msg_type type) : Message() {
     this->type = type;
     msg >> this->topic_name;
     msg >> this->id;
+    msg >> seq_num;
   }
 
   template<class Archive>
   void serialize( Archive & ar )
-  { ar(type, topic_name, id); }
+  { ar(type, topic_name, id, seq_num); }
 
   virtual zmqpp::message to_zmq_msg() {
-    return zmqpp::message(type, topic_name, id);
+    return zmqpp::message(type, topic_name, id, seq_num);
   }
 
   virtual void append_to_zmq_msg(zmqpp::message &msg) {
-    msg << type << topic_name << id;
+    msg << type << topic_name << id << seq_num;
   }
 
   virtual string to_string() const {
-    /*TODO use seq number */
-
-    return "[" + typeStrings[type] + "]\t" + "(" + id + ")\t" + ";" +
-           topic_name;
+    return "[" + typeStrings[type] + "] " + " id(" + id + ")\t" + " topic(" +
+           topic_name + ")" + "seq[" + std::to_string(seq_num) + "]";
   }
 
   string get_topic() { return this->topic_name; }
@@ -69,10 +69,10 @@ public:
   static string typeStrings[];
 
 protected:
-  /* TODO seq number*/
   msg_type type;
   string topic_name;
   string id;
+  int seq_num;
 };
 
 inline ostream &operator<<(ostream &os, const Message &msg) {
@@ -86,7 +86,7 @@ class GetMessage : public Message {
 public:
   GetMessage() {}
   GetMessage(const GetMessage &m) : Message(m) {}
-  GetMessage(string t_name, string id) : Message(GET, t_name, id) {}
+  GetMessage(string t_name, string id, int seq_num) : Message(GET, t_name, id, seq_num) {}
   GetMessage(zmqpp::message &msg) : Message(msg, GET) {}
   virtual zmqpp::message to_zmq_msg() { return Message::to_zmq_msg(); }
 
@@ -118,7 +118,7 @@ private:
 class SubMessage : public Message {
 public:
   SubMessage() {}
-  SubMessage(string t_name, string id) : Message(SUB, t_name, id) {}
+  SubMessage(string t_name, string id, int seq_num) : Message(SUB, t_name, id, seq_num) {}
   SubMessage(zmqpp::message &msg) : Message(msg, SUB) {}
   virtual zmqpp::message to_zmq_msg() { return Message::to_zmq_msg(); }
 
@@ -128,7 +128,7 @@ private:
 class UnsubMessage : public Message {
 public:
   UnsubMessage() {}
-  UnsubMessage(string t_name, string id) : Message(UNSUB, t_name, id) {}
+  UnsubMessage(string t_name, string id, int seq_num) : Message(UNSUB, t_name, id, seq_num) {}
   UnsubMessage(zmqpp::message &msg) : Message(msg, UNSUB) {}
   virtual zmqpp::message to_zmq_msg() { return Message::to_zmq_msg(); }
 
