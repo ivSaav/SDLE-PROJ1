@@ -5,6 +5,8 @@
 #include <zmqpp/zmqpp.hpp>
 
 #include "message.hpp"
+#include "put_msg.hpp"
+#include "answer_msg.hpp"
 
 using namespace std;
 
@@ -18,12 +20,25 @@ public:
   const static int REQ_TIT = 0;
   const static int GET_TIT = 1;
   const static int DEL_TIT = 2;
-  TitanicMessage(int t, Message m, string id = "-1")
-      : id(id), type(t), message(new Message(m)) {}
+  TitanicMessage(int t, Message *m, string id = "-1")
+      : id(id), type(t), message(m) {}
+  TitanicMessage(int t, string id)
+      : id(id), type(t) {}
   TitanicMessage(zmqpp::message &msg) {
     msg >> id;
     msg >> type;
-    message = new Message(msg);
+    if (msg.remaining()) { // message may be empty if GET or DEL
+      int msg_t;
+      msg >> msg_t;
+      if (msg_t== msg_type::ANSWER)
+        message = new AnswerMessage(msg);
+      else if (msg_t== msg_type::PUT) {
+        message = new PutMessage(msg);
+      }
+      else  {
+        message = new Message(msg, (msg_type) msg_t);
+      }
+    }
   }
   ~TitanicMessage() {
     if (!message)
@@ -39,12 +54,7 @@ public:
   zmqpp::message to_zmq_msg() {
     zmqpp::message m(id, type);
     if (message) {
-      zmqpp::message req = message->to_zmq_msg();
-      string c;
-      while (req.remaining()) {
-        req >> c;
-        m << c;
-      }
+      message->append_to_zmq_msg(m);
     }
     return m;
   }

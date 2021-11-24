@@ -18,6 +18,11 @@ public:
   void serialize(Archive & ar)
   { ar(cereal::base_class<Message>(this), body); }
 
+  virtual void append_to_zmq_msg(zmqpp::message &msg) {
+    Message::append_to_zmq_msg(msg);
+    msg << body;
+  }
+
   virtual string to_string() const { return Message::to_string() + ";" + body; }
 
   string get_body() { return this->body; }

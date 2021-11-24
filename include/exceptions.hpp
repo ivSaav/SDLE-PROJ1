@@ -35,11 +35,30 @@ public:
 
 class InvalidMessage : public message_error {
 public:
-  InvalidMessage(string t, msg_type type)
+  InvalidMessage(string t, int type)
       : message_error("Invalid Message", t), type(type) {}
+  InvalidMessage(string t, msg_type type) : InvalidMessage(t, (int) type) {}
 
-  msg_type getType() { return type; }
+  int getType() { return type; }
 
 private:
-  msg_type type;
+  int type;
+};
+
+class FailedRequestBegin : public message_error {
+public:
+  FailedRequestBegin(string t)
+      : message_error("Failed starting request to server", t) {}
+};
+
+class FailedRequestRetreive : public message_error {
+public:
+  FailedRequestRetreive(string t)
+      : message_error("Failed retreiving request from Server", t) {}
+};
+
+class FailedRequestDelete : public message_error {
+public:
+  FailedRequestDelete(string t)
+      : message_error("Failed deleting request from Server", t) {}
 };

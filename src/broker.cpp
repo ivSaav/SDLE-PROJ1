@@ -95,8 +95,6 @@ void Broker::run() {
     }
 
     // If we have available workers or pending requests
-    cout << "Workers: " << worker_queue.size()
-         << " Requests:" << requests_queue.size() << endl;
     if (worker_queue.size() > 0 && requests_queue.size() > 0) {
 
       //  Now get next client request, route to LRU worker
@@ -132,5 +130,7 @@ int main() {
   Broker broker(context);
   broker.run();
   context.terminate();
+
+
   return 0;
 }

@@ -69,15 +69,12 @@ inline bool write_content_file(string file_name, Message *message) {
   return file.good();
 }
 
-inline bool get_content_file(string file_name, Message &msg) {
+inline bool get_content_file(string file_name, shared_ptr<Message> &msg) {
   create_dir();
   ifstream file(REQUESTS_PATH + file_name);
   cereal::XMLInputArchive iarchive(file);
 
-  std::shared_ptr<Message> ptr1;
-  iarchive(ptr1);
-  msg = *ptr1;
-
+  iarchive(msg);
   return file.good();
 }
 

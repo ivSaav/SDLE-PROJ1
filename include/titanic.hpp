@@ -24,6 +24,7 @@ public:
 
     if (msg.isDel()) {
       cout << msg.to_string() << endl;
+      cout << "DELETING " << msg.getId() << endl;
       if (file_exists(msg.getId()))
         delete_file(msg.getId());
 
@@ -44,17 +45,14 @@ public:
         client.send(response);
       }
     } else if (msg.isGet()) {
-      cout << msg.to_string() << endl;
-
       string id = msg.getId();
-      cout << "getting request " << id;
+      cout << "getting request " << msg.to_string();
       if (file_exists(id)) {  // Request was made
         if (file_has_content(id)) { // Request was processed
-          Message response;
+          shared_ptr<Message> response;
           get_content_file(id, response);
-          Message *p = &response; // For polymorphic virtual funct
-          cout << "FINISHED" << p->to_string() << endl;
-          zmqpp::message m = p->to_zmq_msg();
+          cout << "FINISHED " << response->to_string() << endl;
+          zmqpp::message m = response->to_zmq_msg();
           client.send(m);
         } else {
           client.send(zmqpp::signal::ko);

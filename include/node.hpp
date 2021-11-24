@@ -20,6 +20,12 @@ public:
   int unsubscribe(std::string topic_name);
 
 private:
+
+  int send_request(Message *m, string &request_id, int max_retries=1);
+  int get_request(string request_id, shared_ptr<Message> &response, int max_retries=3);
+  int delete_request(string id);
+  void make_request(Message *request, Message &response);
+
   zmqpp::socket socket;
   string id;
 };

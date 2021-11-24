@@ -17,7 +17,6 @@ using namespace std;
 void Worker::handle_get(zmqpp::message &request) {
   GetMessage msg(request);
   string hash_id = hash_message(&msg);
-
   cout << msg << endl;
 
   if (!topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
@@ -28,9 +27,10 @@ void Worker::handle_get(zmqpp::message &request) {
     string answer_content = "";
     topic_queue.get(msg.get_id(), msg.get_topic(), answer_content);
     // If not in queue => answer_content = ""
-    AnswerMessage ans(msg.get_topic(), answer_content, msg.get_id());
-    cout << "\t" << ans << endl;
-    write_content_file(hash_id, &ans);
+    if (answer_content != "") { // We can't finish the request
+      AnswerMessage ans(msg.get_topic(), answer_content, msg.get_id());
+      write_content_file(hash_id, &ans);
+    }
   }
 }
 
@@ -118,6 +118,7 @@ void Worker::work() {
     worker.receive(request);
 
     if (request.is_signal()) { // Request from dad to stop
+      cout << "SIGNAL?" << endl;
       zmqpp::signal s;
       request >> s;
       if (s == zmqpp::signal::stop) {
@@ -127,7 +128,6 @@ void Worker::work() {
       }
     }
 
-    zmqpp::message response;
     handler(request);
   }
 }
