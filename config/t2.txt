@@ -1,0 +1,12 @@
+SLEEP 500
+PUT t1 100 content
+PUT t1 100 content
+PUT t1 100 content
+PUT t1 100 content
+PUT t1 100 content
+SLEEP 100
+PUT t1 100 content
+PUT t1 100 content
+PUT t1 100 content
+PUT t1 100 content
+PUT t1 100 content

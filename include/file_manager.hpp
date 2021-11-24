@@ -14,6 +14,11 @@ inline void create_dir() {
   std::filesystem::create_directories(REQUESTS_PATH);
 }
 
+inline void delete_file(string file_name) {
+  string p = REQUESTS_PATH + file_name;
+  remove(p.c_str());
+}
+
 inline bool file_exists(string file_name) {
   create_dir();
   ifstream file(REQUESTS_PATH + file_name);
@@ -29,6 +34,15 @@ inline bool file_has_content(string file_name) {
 inline void create_file(string file_name) {
   create_dir();
   ofstream file(REQUESTS_PATH + file_name);
+}
+
+inline bool write_content_file(string file_name, zmqpp::signal s) {
+  create_dir();
+  ofstream file(REQUESTS_PATH + file_name);
+  cereal::XMLOutputArchive oarchive(file);
+
+  oarchive(s);
+  return file.good();
 }
 
 inline bool write_content_file(string file_name, Message *message) {

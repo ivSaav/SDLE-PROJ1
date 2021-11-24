@@ -8,12 +8,13 @@
 #include "../include/message/answer_msg.hpp"
 #include "../include/message/message.hpp"
 #include "../include/message/put_msg.hpp"
+#include "../include/file_manager.hpp"
 #include "../include/topic_queue.hpp"
 #include "../include/worker.hpp"
 
 using namespace std;
 
-void Worker::handle_get(zmqpp::message &request, zmqpp::message &response) {
+void Worker::handle_get(zmqpp::message &request) {
   GetMessage msg(request);
 
   cout << msg << endl;
@@ -30,7 +31,7 @@ void Worker::handle_get(zmqpp::message &request, zmqpp::message &response) {
   }
 }
 
-void Worker::handle_put(zmqpp::message &request, zmqpp::message &response) {
+void Worker::handle_put(zmqpp::message &request) {
   PutMessage msg(request);
   cout << msg << endl;
 
@@ -38,7 +39,7 @@ void Worker::handle_put(zmqpp::message &request, zmqpp::message &response) {
   response.push_back(zmqpp::signal::ok);
 }
 
-void Worker::handle_sub(zmqpp::message &request, zmqpp::message &response) {
+void Worker::handle_sub(zmqpp::message &request) {
   SubMessage msg(request);
   cout << msg << endl;
   if (topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
@@ -52,7 +53,7 @@ void Worker::handle_sub(zmqpp::message &request, zmqpp::message &response) {
   }
 }
 
-void Worker::handle_unsub(zmqpp::message &request, zmqpp::message &response) {
+void Worker::handle_unsub(zmqpp::message &request) {
   UnsubMessage msg(request);
   cout << msg << endl;
   if (!topic_queue.is_subscribed(msg.get_id(), msg.get_topic())) {
@@ -65,20 +66,20 @@ void Worker::handle_unsub(zmqpp::message &request, zmqpp::message &response) {
   }
 }
 
-void Worker::handler(zmqpp::message &request, zmqpp::message &response) {
+void Worker::handler(zmqpp::message &request) {
   int type;
   request >> type;
   string topic_name;
   cout << "WORKING ON: " + Message::typeStrings[type] << endl;
 
   if (type == PUT) {
-    handle_put(request, response);
+    handle_put(request);
   } else if (type == SUB) {
-    handle_sub(request, response);
+    handle_sub(request);
   } else if (type == UNSUB) {
-    handle_unsub(request, response);
+    handle_unsub(request);
   } else if (type == GET) {
-    handle_get(request, response);
+    handle_get(request);
   } else {
     cout << "Invalid message" << endl;
   }
