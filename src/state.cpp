@@ -39,6 +39,7 @@ void State::load() {
 }
 
 void State::run() {
+  lock_guard<mutex> g(m);
   this->t = thread(&State::save, this);
   t.detach();
 }
