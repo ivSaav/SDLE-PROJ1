@@ -6,6 +6,8 @@
 
 #include "../node.hpp"
 
+#define OPERATION_DELAY 50 * 1000
+
 using namespace std;
 
 // PUT MSG
@@ -45,6 +47,7 @@ public:
       node.get(topic_name,msg);
       cout << "ID: " << node.getId() << " TOPIC: " << topic_name << " > GET: " << msg << ";\n";
       count++;
+      usleep(OPERATION_DELAY);
     }
   }
 
@@ -63,6 +66,7 @@ public:
       string to_send = msg + " " + to_string(i);
       node.put(topic_name,to_send);
       cout << "ID: " << node.getId() << " TOPIC: " << topic_name << " > PUT: " << to_send << ";\n";
+      usleep(OPERATION_DELAY);
     }
   }
 

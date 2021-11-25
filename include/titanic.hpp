@@ -21,6 +21,10 @@ public:
   void handle(zmqpp::message &req, zmqpp::socket &client,
               queue<TitanicMessage> &requests) {
     TitanicMessage msg(req);
+  #ifdef DEBUG
+    cout << "RECEIVED: " << msg.to_string() << endl;
+  #endif
+
 
     if (msg.isDel()) {
     #ifdef DEBUG
@@ -48,6 +52,8 @@ public:
         client.send(response);
       }
     } else if (msg.isGet()) {
+      #ifdef DEBUG
+      #endif
       string id = msg.getId();
       if (file_exists(id)) {  // Request was made
         if (file_has_content(id)) { // Request was processed
@@ -57,6 +63,7 @@ public:
           cout << "REPLY GET WITH: " << response->to_string() << endl;
         #endif
           zmqpp::message m = response->to_zmq_msg();
+
           client.send(m);
         } else {
           client.send(zmqpp::signal::ko);

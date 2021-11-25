@@ -8,7 +8,17 @@
 
 using namespace std;
 
+bool State::need_save() {
+  lock_guard<mutex> g(m);
+  if(++num_requests >= SAVE_RATE) {
+    num_requests = 0;
+    return true;
+  }
+  return false;
+}
+
 void State::save() {
+  lock_guard<mutex> g(m);
   ofstream os(STATE_FILE, std::ios::binary);
   cereal::BinaryOutputArchive archive(os);
   

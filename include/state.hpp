@@ -6,14 +6,19 @@
 
 using namespace std;
 
+#define SAVE_RATE 1
+
 class State {
 private:
   TopicQueue &topic_queue;
   thread t;
+  int num_requests;
+  mutex m;
 
 public:
   State(TopicQueue &q) : topic_queue(q) {}
 
+  bool need_save();
   void save();
   void load();
   void run();

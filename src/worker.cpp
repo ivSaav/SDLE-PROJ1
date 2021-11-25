@@ -35,6 +35,8 @@ void Worker::handle_put(zmqpp::message &request) {
   PutMessage msg(request);
   string hash_id = hash_message(&msg);
 
+  cout << "HASH: " << hash_id;
+
   topic_queue.put(msg.get_topic(), msg.get_body());
   OkMessage ok(msg.get_id());
   write_content_file(hash_id, &ok);
@@ -117,6 +119,9 @@ void Worker::work() {
     }
 
     handler(request);
+    if (this->state.need_save()) {
+      this->state.run();
+    }
   }
 }
 

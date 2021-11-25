@@ -75,6 +75,7 @@ int Node::get_request(string request_id, shared_ptr<Message> &response,
         usleep(RESEND_TIMEOUT);
       } else if (s ==
                  zmqpp::signal::stop) { // Server has no knowledge of request
+        cout << "NO KNOWLEDGE" << endl;
         return -1;
       }
     } else { // Normal message
@@ -182,9 +183,7 @@ int Node::get(string topic_name, string &content) {
 
   bool done = false;
   while (!done) { // Get must be blocking
-    if (this->send_request(&get_msg, req_id))
-      continue; // Can't connect to server
-
+    this->send_request(&get_msg, req_id);
     int get_response = this->get_request(req_id, response);
     if (get_response == -1) { // Can't establish connection with server
       this->delete_request(req_id);

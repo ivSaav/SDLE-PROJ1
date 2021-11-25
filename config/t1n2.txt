@@ -1,13 +1,2 @@
-UNSUB top1
-SLEEP 500
 SUB top1
-SUB top3
-SUB top3
-SUB top4
-SLEEP 1000
-PUT top1 1 olo
-SLEEP 500
-GET top1 1 
-PUT top3 1 oli
-SLEEP 500
-GET top3 2 
+GET top1 1

@@ -33,6 +33,7 @@ Broker::Broker(zmqpp::context &context)
     : frontend(context, zmqpp::socket_type::rep),
     backend(context, zmqpp::socket_type::router),
     state(this->topic_queue) {
+
   frontend.bind("tcp://*:" + to_string(CLIENT_PORT));
   backend.bind("tcp://*:" + to_string(WORKER_PORT));
 }
@@ -46,6 +47,7 @@ void Broker::cleanUp() {
     delete (w);
   }
 
+  this->state.save();
   this->backend.close();
   this->frontend.close();
 }
@@ -54,7 +56,7 @@ void Broker::run() {
   for (int i = 0; i < NUM_WORKERS; ++i) {
   // Load state
   this->state.load();
-    Worker *w = new Worker(this->topic_queue, to_string(i));
+    Worker *w = new Worker(this->topic_queue, this->state, to_string(i));
     workers.push_back(w);
     workers.at(i)->run();
   }
@@ -63,7 +65,6 @@ void Broker::run() {
 
   queue<string> worker_queue;           // Contains available workers
   queue<TitanicMessage> requests_queue; // Contains pending requests
-  int num_requests = 0;
 
   while (1) {
     zmqpp::poller poller;
@@ -134,10 +135,6 @@ void Broker::run() {
       requests_queue.pop();
 
       // Save state
-      if(++num_requests >= SAVE_RATE) {
-        this->state.run();
-        num_requests = 0;
-      }
     }
   }
 }

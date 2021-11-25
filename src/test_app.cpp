@@ -27,6 +27,7 @@ void TestApp::run(zmqpp::context &context, string node_id)
         cout << e.what() << endl;
       }
       delete (op);
+      usleep(OPERATION_DELAY);
     }
     cout << "ID: " << node_id << " > Finished execution" << endl;
 

@@ -105,8 +105,6 @@ string BetterQ::next(string peer_id) {
   if (was_start)
     this->dec_cnt();
 
-  std::cout << "Calling NEXT " << was_start << std::endl;
-
   return c;
 }
 

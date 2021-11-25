@@ -7,7 +7,6 @@
 #include "../include/state.hpp"
 
 #define NUM_WORKERS 3
-#define SAVE_RATE 1
 
 class Broker {
 public:

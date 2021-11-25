@@ -1,15 +1,9 @@
 SUB top1
-SUB top2
-SUB top3
-SUB top4
-SUB top5
-UNSUB top3
-SLEEP 2000
-PUT top1 1 ola
-PUT top1 1 ole
-PUT top1 1 oli
 SLEEP 1000
-GET top1 1
-PUT top1 1 oli
+PUT top1 200 ola
+PUT top1 200 ola
+PUT top1 200 ola
 SLEEP 1000
-GET top1 3
+GET top1 200
+GET top1 200
+GET top1 200
