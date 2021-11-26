@@ -11,22 +11,31 @@ Group members:
 
 ## Usage
 
+### Dependencies
+Make sure you have the following dependencies installed before running the project: 
+- c++17
+- g++ (GCC) 11.1.0
+- [zmqpp](https://github.com/zeromq/zmqpp)
+- [cereal](https://uscilab.github.io/cereal/)
+
 ### Compile
 Run `make` in the root folder. The executables will be generated in the `build/apps` directory.
-There is also the option to compile with the debug option. This option adds log messages to output stream.
+There is also the option to compile with the debug option. This option adds log messages to the output stream.
+
 
 ### Run
-- Run the Broker:
+A simple usage of the program includes:
+1. Running the Broker:
 
 `./build/apps/broker`
 
-- Now we have 2 possible options: 
-    - Run the TestApp (Runs several operations specified in a file):
+2. Two executables can be run to use the client API:
+    - The TestApp (Runs several operations specified in a file):
         - *filename*: Configuration file with operations to be executed.
         - *node_id*: Client identification.
 
         `./build/apps/test_app filename node_id`
-    - Run main (Runs a single operation specified in a program argument):
+    - The main (Runs a single operation specified in a program argument):
         - *node_id*: Client identification.
         - *sub topic*: Subscribe a topic.
         - *unsub topic*: Unsubscribe from a topic.
@@ -35,14 +44,6 @@ There is also the option to compile with the debug option. This option adds log 
         - *print*: Print broker's topic queue.
 
         `./build/apps/main node_id (sub topic)|(put topic content)|(unsub topic)|(get topic)|(print)`
-
-### Dependencies
-Make sure you have the following dependencies installed before running the project: 
-- c++17
-- g++ (GCC) 11.1.0
-- [zmqpp](https://github.com/zeromq/zmqpp)
-- [cereal](https://uscilab.github.io/cereal/)
-
 
 ### Configuration file
 The configuration file contains the list of operations to be executed by 
