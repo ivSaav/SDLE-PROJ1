@@ -1,11 +1,11 @@
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <queue>
 #include <signal.h>
 #include <zmqpp/socket.hpp>
 #include <zmqpp/socket_types.hpp>
 #include <zmqpp/zmqpp.hpp>
-#include <fstream>
 // Serialization
 #include <cereal/archives/json.hpp>
 
@@ -31,8 +31,7 @@ static void s_catch_signals(void) {
 
 Broker::Broker(zmqpp::context &context)
     : frontend(context, zmqpp::socket_type::rep),
-    backend(context, zmqpp::socket_type::router),
-    state(this->topic_queue) {
+      backend(context, zmqpp::socket_type::router), state(this->topic_queue) {
 
   frontend.bind("tcp://*:" + to_string(CLIENT_PORT));
   backend.bind("tcp://*:" + to_string(WORKER_PORT));
@@ -54,8 +53,8 @@ void Broker::cleanUp() {
 
 void Broker::run() {
   for (int i = 0; i < NUM_WORKERS; ++i) {
-  // Load state
-  this->state.load();
+    // Load state
+    this->state.load();
     Worker *w = new Worker(this->topic_queue, this->state, to_string(i));
     workers.push_back(w);
     workers.at(i)->run();
@@ -141,13 +140,10 @@ void Broker::run() {
 
 int main() {
   cout << "Running broker" << std::endl;
-  //Titanic t;
-  //t.test();
   zmqpp::context context;
   Broker broker(context);
   broker.run();
   context.terminate();
-
 
   return 0;
 }

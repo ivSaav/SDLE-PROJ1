@@ -6,7 +6,7 @@
 
 #include "../node.hpp"
 
-#define OPERATION_DELAY 50 * 1000
+#define OPERATION_DELAY 0
 
 using namespace std;
 
