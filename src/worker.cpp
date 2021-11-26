@@ -65,6 +65,7 @@ void Worker::handle_unsub(zmqpp::message &request) {
     write_content_file(hash_id, &ko);
   } else {
     OkMessage ok(msg.get_id());
+    topic_queue.unsubscribe(msg.get_id(), msg.get_topic());
     write_content_file(hash_id, &ok);
   }
 }
