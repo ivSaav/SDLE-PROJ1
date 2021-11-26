@@ -7,6 +7,7 @@ APP_DIR  := $(BUILD)/apps
 INCLUDE  := -Iinclude/
 TARG_DIR := build/objects/src
 TARGETS	 := $(TARG_DIR)/broker.o $(TARG_DIR)/main.o $(TARG_DIR)/test_app.o
+CXXFLAGS := -std=c++17
 SRC      :=                      \
    $(wildcard src/*.cpp)         \
    $(wildcard src/message/*.cpp)         \
